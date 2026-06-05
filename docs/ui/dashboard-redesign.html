@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>控制台 UI 重设计样稿</title>
+    <link rel="stylesheet" href="./dashboard-redesign.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="控制台导航">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">T</div>
+          <div>
+            <p class="brand-kicker">OPEN PLATFORM</p>
+            <strong>鼠鼠公益站</strong>
+          </div>
+        </div>
+
+        <nav class="nav-stack">
+          <p class="nav-label">聊天</p>
+          <a href="#" class="nav-link">
+            <span class="nav-icon lab-icon" aria-hidden="true"></span>
+            游乐场
+          </a>
+          <a href="#" class="nav-link">
+            <span class="nav-icon chat-icon" aria-hidden="true"></span>
+            聊天
+          </a>
+
+          <p class="nav-label">常规</p>
+          <a href="#" class="nav-link active">
+            <span class="nav-icon pulse-icon" aria-hidden="true"></span>
+            概览
+          </a>
+          <a href="#" class="nav-link">
+            <span class="nav-icon grid-icon" aria-hidden="true"></span>
+            数据看板
+          </a>
+          <a href="#" class="nav-link">
+            <span class="nav-icon key-icon" aria-hidden="true"></span>
+            API 密钥
+          </a>
+          <a href="#" class="nav-link">
+            <span class="nav-icon doc-icon" aria-hidden="true"></span>
+            使用日志
+          </a>
+          <a href="#" class="nav-link">
+            <span class="nav-icon list-icon" aria-hidden="true"></span>
+            任务日志
+          </a>
+
+          <p class="nav-label">个人</p>
+          <a href="#" class="nav-link">
+            <span class="nav-icon wallet-icon" aria-hidden="true"></span>
+            钱包
+          </a>
+          <a href="#" class="nav-link">
+            <span class="nav-icon user-icon" aria-hidden="true"></span>
+            个人资料
+          </a>
+        </nav>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <nav class="topnav" aria-label="顶部导航">
+            <a href="#">主页</a>
+            <a href="#" class="current">控制台</a>
+            <a href="#">模型广场</a>
+            <a href="#">排行榜</a>
+            <a href="#">文档</a>
+            <a href="#">关于</a>
+          </nav>
+
+          <div class="top-actions">
+            <label class="search">
+              <span aria-hidden="true"></span>
+              <input type="search" placeholder="搜索模型、密钥、日志" />
+              <kbd>⌘ K</kbd>
+            </label>
+            <button class="icon-button" aria-label="通知">
+              <span class="bell-icon" aria-hidden="true"></span>
+            </button>
+            <button class="icon-button" aria-label="切换语言">
+              <span class="translate-icon" aria-hidden="true"></span>
+            </button>
+            <button class="avatar-button" aria-label="账户菜单">T</button>
+          </div>
+        </header>
+
+        <main class="dashboard">
+          <section class="page-heading" aria-labelledby="overview-title">
+            <div>
+              <p class="eyebrow">DASHBOARD / OVERVIEW</p>
+              <h1 id="overview-title">概览</h1>
+            </div>
+            <div class="heading-meta">
+              <span class="status-dot"></span>
+              正常
+            </div>
+          </section>
+
+          <section class="setup-strip" aria-label="设置引导">
+            <div class="setup-status">
+              <span class="checkmark" aria-hidden="true"></span>
+              <div>
+                <strong>设置引导已完成</strong>
+                <p>设置进度：3/3，已收起引导，让用量信息保持在焦点位置。</p>
+              </div>
+            </div>
+            <div class="setup-actions">
+              <a href="#">API 密钥</a>
+              <a href="#">使用日志</a>
+              <a href="#">定价</a>
+              <button type="button">显示设置引导</button>
+            </div>
+          </section>
+
+          <section class="usage-grid" aria-label="用量概览">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">USAGE</p>
+                <h2>用量概览</h2>
+              </div>
+              <p>余额、用量和请求量按高频决策顺序排列，方便快速判断状态。</p>
+            </div>
+
+            <article class="metric-card accent-amber">
+              <div class="metric-label">
+                <span class="flame-icon" aria-hidden="true"></span>
+                近 24 小时消耗
+              </div>
+              <strong>$0.0183</strong>
+              <p>近 24 小时消耗量 (USD)</p>
+              <div class="sparkline" aria-label="近 24 小时消耗趋势">
+                <span style="--x: 0%; --y: 66%"></span>
+                <span style="--x: 74%; --y: 66%"></span>
+                <span style="--x: 84%; --y: 28%"></span>
+                <span style="--x: 92%; --y: 48%"></span>
+                <span style="--x: 100%; --y: 60%"></span>
+              </div>
+            </article>
+
+            <article class="metric-card accent-ink">
+              <div class="metric-label">
+                <span class="trend-icon" aria-hidden="true"></span>
+                历史使用情况
+              </div>
+              <strong>$0.0183</strong>
+              <p>总消耗 (USD)</p>
+              <div class="sparkline" aria-label="历史消耗趋势">
+                <span style="--x: 0%; --y: 66%"></span>
+                <span style="--x: 72%; --y: 66%"></span>
+                <span style="--x: 82%; --y: 28%"></span>
+                <span style="--x: 92%; --y: 50%"></span>
+                <span style="--x: 100%; --y: 60%"></span>
+              </div>
+            </article>
+
+            <article class="metric-card accent-steel">
+              <div class="metric-label">
+                <span class="pulse-small-icon" aria-hidden="true"></span>
+                请求计数
+              </div>
+              <strong>5</strong>
+              <p>总请求数</p>
+              <div class="sparkline" aria-label="请求趋势">
+                <span style="--x: 0%; --y: 66%"></span>
+                <span style="--x: 70%; --y: 66%"></span>
+                <span style="--x: 82%; --y: 30%"></span>
+                <span style="--x: 92%; --y: 52%"></span>
+                <span style="--x: 100%; --y: 60%"></span>
+              </div>
+            </article>
+
+            <article class="balance-panel">
+              <div class="balance-head">
+                <span>余额额度</span>
+                <strong><i></i> 正常</strong>
+              </div>
+              <p class="balance-value">$236.22</p>
+              <div class="balance-stats">
+                <span>近 24 小时消耗 <strong>$0.0183</strong></span>
+                <span>可用时长 <strong>999+ 天</strong></span>
+              </div>
+              <a href="#" class="wallet-cta">钱包 <span aria-hidden="true">→</span></a>
+            </article>
+          </section>
+
+          <section class="operations-grid" aria-label="平台状态">
+            <article class="panel api-panel">
+              <header>
+                <div>
+                  <p class="eyebrow">API</p>
+                  <h2>API 信息</h2>
+                </div>
+                <span class="panel-icon route-icon" aria-hidden="true"></span>
+              </header>
+              <div class="empty-state">
+                <strong>未配置 API 路由</strong>
+                <p>已配置路由和延迟检测会在这里集中显示。</p>
+              </div>
+              <footer>
+                <a href="#">查看 API 密钥</a>
+                <a href="#">配置渠道</a>
+              </footer>
+            </article>
+
+            <article class="panel announcement-panel">
+              <header>
+                <div>
+                  <p class="eyebrow">NEWS</p>
+                  <h2>公告</h2>
+                </div>
+                <span class="panel-icon megaphone-icon" aria-hidden="true"></span>
+              </header>
+              <div class="empty-state compact">
+                <strong>目前暂无公告</strong>
+                <p>最新平台更新和通知会显示在这里。</p>
+              </div>
+              <footer>
+                <a href="#">订阅通知</a>
+              </footer>
+            </article>
+
+            <article class="panel uptime-panel">
+              <header>
+                <div>
+                  <p class="eyebrow">UPTIME</p>
+                  <h2>运行时间</h2>
+                </div>
+                <span class="panel-icon activity-icon" aria-hidden="true"></span>
+              </header>
+              <div class="uptime-board" aria-label="运行时间监控">
+                <div>
+                  <span>API 网关</span>
+                  <strong>未配置</strong>
+                </div>
+                <div>
+                  <span>监控来源</span>
+                  <strong>Uptime Kuma</strong>
+                </div>
+              </div>
+              <div class="empty-state compact">
+                <strong>未配置正常运行时间监控</strong>
+              </div>
+            </article>
+
+            <article class="panel log-panel">
+              <header>
+                <div>
+                  <p class="eyebrow">LOGS</p>
+                  <h2>最近使用</h2>
+                </div>
+                <span class="panel-icon list-panel-icon" aria-hidden="true"></span>
+              </header>
+              <div class="log-list">
+                <div>
+                  <span>请求成功</span>
+                  <strong>5 次</strong>
+                </div>
+                <div>
+                  <span>失败请求</span>
+                  <strong>0 次</strong>
+                </div>
+                <div>
+                  <span>今日消费</span>
+                  <strong>$0.0183</strong>
+                </div>
+              </div>
+              <footer>
+                <a href="#">打开使用日志</a>
+              </footer>
+            </article>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
