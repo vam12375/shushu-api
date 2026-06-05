@@ -44,14 +44,14 @@ export function SidebarViewHeader(props: SidebarViewHeaderProps) {
   const { setOpenMobile } = useSidebar()
 
   return (
-    <SidebarHeader className='border-sidebar-border border-b px-2 py-2'>
+    <SidebarHeader className='border-sidebar-border/80 border-b px-3 py-2'>
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip={t(props.view.parent.label)}
             className={cn(
               'text-muted-foreground hover:text-foreground',
-              'gap-1.5 font-medium'
+              'gap-2 font-bold'
             )}
             render={
               <Link

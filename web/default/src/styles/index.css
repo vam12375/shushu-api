@@ -55,6 +55,20 @@ For commercial licensing, please contact support@quantumnous.com
      * (defined in theme.css, swapped by `[data-theme-font='...']` blocks
      * in theme-presets.css). Defaults to the project's humanist sans. */
     font-family: var(--font-body);
+    background-image:
+      radial-gradient(
+        circle at 1px 1px,
+        color-mix(in oklch, var(--foreground) 10%, transparent) 1px,
+        transparent 0
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in oklch, var(--foreground) 4%, transparent) 1px,
+        transparent 1px
+      );
+    background-size:
+      24px 24px,
+      24px 24px;
   }
 
   /* Keep sticky headers stable while primitives lock body scrolling. */
@@ -486,7 +500,9 @@ For commercial licensing, please contact support@quantumnous.com
   @media (min-width: 641px) {
     [data-slot='card']:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgb(0 0 0 / 0.06);
+      box-shadow:
+        0 16px 36px rgb(25 21 14 / 0.08),
+        3px 3px 0 color-mix(in oklch, var(--foreground) 78%, transparent);
     }
 
     .dark [data-slot='card']:hover {

@@ -51,14 +51,14 @@ interface StatCardProps {
 }
 
 const TONE_CLASSES: Record<StatCardTone, string> = {
-  rose: 'from-rose-500/80 via-rose-300/70 to-rose-200/20 dark:from-rose-400/70 dark:via-rose-500/30 dark:to-rose-500/5',
-  teal: 'from-teal-500/80 via-teal-300/70 to-teal-200/20 dark:from-teal-400/70 dark:via-teal-500/30 dark:to-teal-500/5',
-  gray: 'from-muted-foreground/50 via-muted-foreground/20 to-transparent dark:from-muted-foreground/40 dark:via-muted-foreground/20',
+  rose: 'from-warning via-warning/70 to-warning/10',
+  teal: 'from-info via-info/70 to-info/10',
+  gray: 'from-muted-foreground via-muted-foreground/55 to-muted-foreground/10',
 }
 
 const LINE_TONE_CLASSES: Record<StatCardTone, string> = {
   rose: 'text-warning',
-  teal: 'text-primary',
+  teal: 'text-info',
   gray: 'text-muted-foreground',
 }
 
@@ -125,7 +125,7 @@ function LineSparkline(props: { values?: number[]; tone: StatCardTone }) {
   return (
     <div
       className={cn(
-        'relative h-8 overflow-hidden rounded-lg',
+        'relative h-11 overflow-hidden rounded-md',
         LINE_TONE_CLASSES[props.tone]
       )}
       aria-hidden='true'
@@ -160,7 +160,7 @@ function BarSparkline(props: { values?: number[]; tone: StatCardTone }) {
   const sparkline = normalizeSparkline(props.values)
 
   return (
-    <div className='flex h-8 items-end gap-1' aria-hidden='true'>
+    <div className='flex h-11 items-end gap-1' aria-hidden='true'>
       {sparkline.map((height, index) => (
         <span
           key={`spark-${index}`}
@@ -182,7 +182,7 @@ function StatCardDetails(props: { details: StatCardDetail[] }) {
       {props.details.map((detail) => (
         <div
           key={detail.label}
-          className='bg-muted/40 rounded-lg border border-transparent px-2.5 py-2'
+          className='bg-muted/60 rounded-lg border px-2.5 py-2'
         >
           <div className='text-muted-foreground truncate text-[11px] leading-none font-medium'>
             {detail.label}
@@ -208,11 +208,11 @@ export function StatCard(props: StatCardProps) {
   const sparklineVariant = props.sparklineVariant ?? 'bars'
 
   return (
-    <div className='group flex min-h-32 flex-col justify-between gap-3'>
+    <div className='group flex min-h-44 flex-col justify-between gap-4'>
       <div className='flex items-start justify-between gap-1'>
-        <div className='text-muted-foreground flex items-center gap-1.5 text-xs font-medium sm:gap-2'>
+        <div className='text-muted-foreground flex items-center gap-2 text-sm font-extrabold'>
           <Icon
-            className='text-muted-foreground/60 size-3.5 shrink-0'
+            className='text-muted-foreground/70 size-4 shrink-0'
             aria-hidden='true'
           />
           <span className='line-clamp-2 leading-snug'>{props.title}</span>
@@ -227,19 +227,17 @@ export function StatCard(props: StatCardProps) {
         </div>
       ) : props.error ? (
         <div className='flex flex-col gap-1'>
-          <div className='text-muted-foreground mt-0.5 font-mono text-base font-bold tracking-tight break-all tabular-nums sm:text-2xl'>
+          <div className='text-muted-foreground mt-0.5 font-mono text-3xl font-black tracking-normal break-all tabular-nums'>
             --
           </div>
-          <p className='text-muted-foreground/60 text-xs'>
-            {props.description}
-          </p>
+          <p className='text-muted-foreground text-sm'>{props.description}</p>
         </div>
       ) : (
         <div className='flex flex-col gap-1'>
-          <div className='text-foreground font-mono text-2xl font-semibold tracking-tight break-all tabular-nums'>
+          <div className='text-foreground font-mono text-3xl font-black tracking-normal break-all tabular-nums'>
             {props.value}
           </div>
-          <p className='text-muted-foreground/60 text-xs leading-relaxed'>
+          <p className='text-muted-foreground text-sm leading-relaxed'>
             {props.description}
           </p>
         </div>

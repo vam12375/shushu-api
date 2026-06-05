@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -61,43 +62,42 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
             <Menu />
           </DropdownMenuTrigger>
           <DropdownMenuContent side='bottom' align='start'>
-            {normalizedLinks.map(
-              ({ title, href, isActive, disabled, external }) => (
-                <DropdownMenuItem
-                  key={`${title}-${href}`}
-                  render={
-                    external ? (
-                      <a
-                        href={href}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className={!isActive ? 'text-muted-foreground' : ''}
-                      >
-                        {title}
-                      </a>
-                    ) : (
-                      <Link
-                        to={href}
-                        className={!isActive ? 'text-muted-foreground' : ''}
-                        disabled={disabled}
-                      >
-                        {title}
-                      </Link>
-                    )
-                  }
-                ></DropdownMenuItem>
-              )
-            )}
+            <DropdownMenuGroup>
+              {normalizedLinks.map(
+                ({ title, href, isActive, disabled, external }) => (
+                  <DropdownMenuItem
+                    key={`${title}-${href}`}
+                    render={
+                      external ? (
+                        <a
+                          href={href}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className={!isActive ? 'text-muted-foreground' : ''}
+                        >
+                          {title}
+                        </a>
+                      ) : (
+                        <Link
+                          to={href}
+                          className={!isActive ? 'text-muted-foreground' : ''}
+                          disabled={disabled}
+                        >
+                          {title}
+                        </Link>
+                      )
+                    }
+                  />
+                )
+              )}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
       {/* 桌面端水平导航 */}
       <nav
-        className={cn(
-          'hidden items-center space-x-4 lg:flex lg:space-x-4 xl:space-x-6',
-          className
-        )}
+        className={cn('hidden items-center gap-3 lg:flex xl:gap-5', className)}
         {...props}
       >
         {normalizedLinks.map(({ title, href, isActive, disabled, external }) =>
@@ -107,7 +107,7 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
               href={href}
               target='_blank'
               rel='noopener noreferrer'
-              className={`hover:text-primary text-sm font-medium transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
+              className={`hover:text-primary rounded-full px-1 py-2 text-sm font-bold transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
             >
               {title}
             </a>
@@ -116,7 +116,7 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
               key={`${title}-${href}`}
               to={href}
               disabled={disabled}
-              className={`hover:text-primary text-sm font-medium transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
+              className={`hover:text-primary rounded-full px-1 py-2 text-sm font-bold transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
             >
               {title}
             </Link>

@@ -102,19 +102,19 @@ export function PerformanceHealthPanel() {
   const hasData = models.length > 0
 
   return (
-    <section className='bg-card h-full overflow-hidden rounded-2xl border shadow-xs'>
-      <div className='flex items-center gap-2 border-b px-4 py-3 sm:px-5'>
+    <section className='bg-card/95 border-border/90 h-full overflow-hidden rounded-lg border shadow-[0_18px_45px_rgb(25_21_14_/_0.08)]'>
+      <div className='flex items-center gap-2 border-b px-5 py-4'>
         <HeartPulse
           className='text-muted-foreground/60 size-4 shrink-0'
           aria-hidden='true'
         />
-        <h3 className='text-sm font-semibold'>{t('Performance health')}</h3>
+        <h3 className='text-base font-black'>{t('Performance health')}</h3>
         <span className='text-muted-foreground ml-auto text-xs'>
           {t('Performance metrics for the last 24 hours')}
         </span>
       </div>
 
-      <div className='space-y-3 p-4 sm:p-5'>
+      <div className='flex flex-col gap-3 p-5'>
         <div className='grid grid-cols-3 gap-2'>
           <MetricCell
             icon={HeartPulse}
@@ -195,7 +195,7 @@ function MetricCell(props: {
 }) {
   const Icon = props.icon
   return (
-    <div className='bg-muted/40 rounded-xl px-3 py-2.5'>
+    <div className='bg-muted/60 rounded-lg border px-3 py-2.5'>
       <div className='text-muted-foreground flex items-center gap-1.5 text-[11px] font-medium'>
         <Icon className='size-3 shrink-0' aria-hidden='true' />
         <span className='truncate'>{props.label}</span>

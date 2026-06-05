@@ -222,7 +222,7 @@ export function Dashboard() {
     <SectionPageLayout>
       <SectionPageLayout.Title>{t(meta.titleKey)}</SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='space-y-3 sm:space-y-4'>
+        <div className='flex flex-col gap-4'>
           {activeSection !== 'overview' && (
             <div className='flex flex-wrap items-center justify-between gap-1.5 sm:gap-2'>
               {showSectionTabs ? (

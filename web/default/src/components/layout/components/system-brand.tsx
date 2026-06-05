@@ -60,18 +60,18 @@ export function SystemBrand(props: SystemBrandProps) {
         to='/'
         aria-label={t('Go to home')}
         className={cn(
-          'text-foreground inline-flex h-7 items-center gap-1.5 rounded-md px-1.5 text-sm font-medium transition-colors outline-none select-none',
-          'hover:bg-accent focus-visible:ring-ring/40 focus-visible:ring-2'
+          'text-foreground inline-flex h-10 min-w-0 items-center gap-2 rounded-full px-1.5 pe-3 text-sm font-bold transition-colors outline-none select-none',
+          'hover:bg-card focus-visible:ring-ring/40 focus-visible:ring-2 md:hidden'
         )}
       >
-        <div className='flex size-5 items-center justify-center overflow-hidden rounded-md'>
+        <div className='bg-accent ring-foreground/80 flex size-8 items-center justify-center overflow-hidden rounded-full shadow-[3px_3px_0_var(--foreground)] ring-1'>
           <img
             src={logo}
             alt={t('Logo')}
-            className='size-full rounded-md object-cover'
+            className='size-full rounded-full object-cover'
           />
         </div>
-        <span className='max-w-[12rem] truncate'>{name}</span>
+        <span className='max-w-[11rem] truncate'>{name}</span>
       </Link>
     )
   }
@@ -81,19 +81,26 @@ export function SystemBrand(props: SystemBrandProps) {
       <SidebarMenuItem>
         <SidebarMenuButton
           size='lg'
-          className='hover:text-sidebar-foreground active:text-sidebar-foreground cursor-default hover:bg-transparent active:bg-transparent'
+          className='hover:text-sidebar-foreground active:text-sidebar-foreground h-auto cursor-default items-center gap-3 rounded-lg px-2 py-3 hover:bg-transparent active:bg-transparent'
           render={<div />}
         >
-          <div className='flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg'>
+          <div className='bg-accent ring-foreground/80 flex aspect-square size-10 items-center justify-center overflow-hidden rounded-full shadow-[3px_3px_0_var(--foreground)] ring-1'>
             <img
               src={logo}
               alt={t('Logo')}
-              className='size-full rounded-lg object-cover'
+              className='size-full rounded-full object-cover'
             />
           </div>
           <div className='grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden'>
-            <span className='truncate font-semibold'>{name}</span>
-            <span className='truncate text-xs'>{version}</span>
+            <span className='text-muted-foreground text-[11px] leading-none font-extrabold uppercase'>
+              {t('Platform')}
+            </span>
+            <span className='mt-1 truncate text-base leading-none font-black'>
+              {name}
+            </span>
+            <span className='text-muted-foreground mt-1 truncate text-[11px]'>
+              {version}
+            </span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>

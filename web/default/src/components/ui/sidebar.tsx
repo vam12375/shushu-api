@@ -46,9 +46,9 @@ import {
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = '13rem'
-const SIDEBAR_WIDTH_MOBILE = '17rem'
-const SIDEBAR_WIDTH_ICON = '2.75rem'
+const SIDEBAR_WIDTH = '17rem'
+const SIDEBAR_WIDTH_MOBILE = '18rem'
+const SIDEBAR_WIDTH_ICON = '3.25rem'
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 
 type SidebarContextProps = {
@@ -157,7 +157,7 @@ function SidebarProvider({
           } as React.CSSProperties
         }
         className={cn(
-          'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
+          'group/sidebar-wrapper has-data-[variant=inset]:bg-background flex min-h-svh w-full',
           className
         )}
         {...props}
@@ -188,7 +188,7 @@ function Sidebar({
       <div
         data-slot='sidebar'
         className={cn(
-          'bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
+          'bg-sidebar/90 text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
           className
         )}
         {...props}
@@ -252,7 +252,7 @@ function Sidebar({
           'fixed top-[var(--app-header-height,0px)] bottom-0 z-10 hidden h-[calc(100svh-var(--app-header-height,0px))] w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex',
           // Adjust the padding for floating and inset variants.
           variant === 'floating' || variant === 'inset'
-            ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
+            ? 'p-3 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(6))+2px)]'
             : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l',
           className
         )}
@@ -261,7 +261,7 @@ function Sidebar({
         <div
           data-sidebar='sidebar'
           data-slot='sidebar-inner'
-          className='bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1'
+          className='bg-sidebar/90 group-data-[variant=floating]:ring-sidebar-border border-sidebar-border/70 flex size-full flex-col backdrop-blur-xl group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-[0_18px_45px_rgb(25_21_14_/_0.08)] group-data-[variant=floating]:ring-0'
         >
           {children}
         </div>
@@ -326,7 +326,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
     <main
       data-slot='sidebar-inset'
       className={cn(
-        'bg-background relative flex w-full flex-1 flex-col md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+        'bg-background/70 relative flex w-full flex-1 flex-col md:peer-data-[variant=inset]:m-3 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-lg md:peer-data-[variant=inset]:border md:peer-data-[variant=inset]:shadow-[0_18px_45px_rgb(25_21_14_/_0.08)] md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-3',
         className
       )}
       {...props}
@@ -419,7 +419,7 @@ function SidebarGroupLabel({
     props: mergeProps<'div'>(
       {
         className: cn(
-          'flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
+          'text-muted-foreground flex h-8 shrink-0 items-center rounded-md px-2 text-[11px] font-extrabold tracking-normal uppercase ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
           className
         ),
       },
@@ -494,7 +494,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<'li'>) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  'peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate',
+  'peer/menu-button group/menu-button flex w-full items-center gap-2.5 overflow-hidden rounded-lg border border-transparent p-2 text-left text-sm font-bold ring-sidebar-ring outline-hidden transition-[width,height,padding,background-color,box-shadow,color,border-color] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:p-2! hover:border-sidebar-border hover:bg-card/70 hover:text-sidebar-foreground focus-visible:ring-2 active:bg-card active:text-sidebar-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-card data-open:hover:text-sidebar-foreground data-active:border-foreground data-active:bg-sidebar-accent data-active:font-extrabold data-active:text-sidebar-accent-foreground data-active:shadow-[4px_4px_0_var(--accent)] [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate',
   {
     variants: {
       variant: {
@@ -503,9 +503,9 @@ const sidebarMenuButtonVariants = cva(
           'bg-background shadow-[0_0_0_1px_var(--sidebar-border)] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_var(--sidebar-accent)]',
       },
       size: {
-        default: 'h-8 text-sm',
-        sm: 'h-7 text-xs',
-        lg: 'h-12 text-sm group-data-[collapsible=icon]:p-0!',
+        default: 'h-10 text-sm',
+        sm: 'h-8 text-xs',
+        lg: 'h-14 text-sm group-data-[collapsible=icon]:p-0!',
       },
     },
     defaultVariants: {

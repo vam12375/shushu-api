@@ -234,24 +234,24 @@ export function SummaryCards() {
   })
 
   return (
-    <div className='bg-card overflow-hidden rounded-2xl border shadow-xs'>
-      <div className='grid xl:grid-cols-[minmax(0,1fr)_19rem]'>
-        <div className='flex flex-col gap-3 p-4 sm:p-5'>
+    <section className='bg-card/95 border-border/90 overflow-hidden rounded-lg border shadow-[0_18px_45px_rgb(25_21_14_/_0.08)]'>
+      <div className='grid xl:grid-cols-[minmax(0,1fr)_23rem]'>
+        <div className='flex flex-col gap-4 p-5'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div className='flex flex-col gap-1'>
-              <h3 className='text-base font-semibold'>
+              <h3 className='text-2xl font-black tracking-normal'>
                 {t('Usage at a glance')}
               </h3>
-              <p className='text-muted-foreground text-sm'>
+              <p className='text-muted-foreground text-base'>
                 {t('Monitor balance, usage, and request volume')}
               </p>
             </div>
           </div>
-          <StaggerContainer className='grid gap-3 md:grid-cols-3'>
+          <StaggerContainer className='grid gap-4 md:grid-cols-3'>
             {items.map((it) => (
               <StaggerItem
                 key={it.key}
-                className='bg-background/60 rounded-xl border p-3'
+                className='bg-card border-border/90 rounded-lg border p-4 shadow-sm'
               >
                 <StatCard
                   title={it.title}
@@ -268,10 +268,10 @@ export function SummaryCards() {
           </StaggerContainer>
         </div>
 
-        <div className='bg-warning/10 flex flex-col justify-between gap-4 border-t p-4 sm:p-5 xl:border-t-0 xl:border-l'>
+        <div className='bg-primary text-primary-foreground border-primary flex flex-col justify-between gap-5 border-t p-5 xl:border-t-0 xl:border-l'>
           <div className='flex flex-col gap-3'>
             <div className='flex items-center justify-between'>
-              <span className='text-muted-foreground text-xs font-medium'>
+              <span className='text-primary-foreground/70 text-sm font-bold'>
                 {t('Credit remaining')}
               </span>
               <span className='flex items-center gap-1.5'>
@@ -279,28 +279,28 @@ export function SummaryCards() {
                   className={cn('size-1.5 rounded-full', healthCfg.dotClass)}
                   aria-hidden='true'
                 />
-                <span className='text-muted-foreground text-[11px] font-medium'>
+                <span className='text-primary-foreground/75 text-xs font-bold'>
                   {t(healthCfg.labelKey)}
                 </span>
               </span>
             </div>
 
-            <div className='font-mono text-2xl font-semibold tracking-tight'>
+            <div className='font-mono text-4xl font-black tracking-normal'>
               {formatQuota(remainQuota)}
             </div>
 
             <div className='grid grid-cols-2 gap-2'>
-              <div className='bg-background/60 rounded-lg px-2.5 py-2'>
-                <div className='text-muted-foreground flex items-center gap-1 text-[11px] leading-none font-medium'>
+              <div className='bg-primary-foreground/10 border-primary-foreground/10 rounded-lg border px-3 py-3'>
+                <div className='text-primary-foreground/70 flex items-center gap-1 text-xs leading-none font-bold'>
                   <Flame className='size-3 shrink-0' aria-hidden='true' />
                   <span className='truncate'>{t('Last 24h usage')}</span>
                 </div>
-                <div className='text-foreground mt-1.5 truncate text-xs font-semibold tabular-nums'>
+                <div className='text-primary-foreground mt-2 truncate text-sm font-black tabular-nums'>
                   {formatQuota(recentUsage)}
                 </div>
               </div>
-              <div className='bg-background/60 rounded-lg px-2.5 py-2'>
-                <div className='text-muted-foreground flex items-center gap-1 text-[11px] leading-none font-medium'>
+              <div className='bg-primary-foreground/10 border-primary-foreground/10 rounded-lg border px-3 py-3'>
+                <div className='text-primary-foreground/70 flex items-center gap-1 text-xs leading-none font-bold'>
                   {runwayDays !== null && runwayDays < 3 ? (
                     <TrendingDown
                       className='size-3 shrink-0'
@@ -316,7 +316,7 @@ export function SummaryCards() {
                 </div>
                 <div
                   className={cn(
-                    'mt-1.5 truncate text-xs font-semibold tabular-nums',
+                    'mt-2 truncate text-sm font-black tabular-nums',
                     healthLevel === 'critical' && 'text-destructive',
                     healthLevel === 'caution' && 'text-warning'
                   )}
@@ -335,12 +335,16 @@ export function SummaryCards() {
             </div>
           </div>
 
-          <Button className='justify-between' render={<Link to='/wallet' />}>
+          <Button
+            variant='outline'
+            className='border-foreground bg-accent text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground h-11 justify-between rounded-full'
+            render={<Link to='/wallet' />}
+          >
             <span>{t('Wallet')}</span>
             <ArrowRight data-icon='inline-end' />
           </Button>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -20,9 +20,15 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { MOTION_TRANSITION, MOTION_VARIANTS } from '@/lib/motion'
 import { useLayout } from '@/context/layout-provider'
 import { useSidebarView } from '@/hooks/use-sidebar-view'
-import { Sidebar, SidebarContent, SidebarRail } from '@/components/ui/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 import { NavGroup } from './nav-group'
 import { SidebarViewHeader } from './sidebar-view-header'
+import { SystemBrand } from './system-brand'
 
 /**
  * Application sidebar.
@@ -48,9 +54,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
+      <SidebarHeader className='border-sidebar-border border-b px-3 py-3'>
+        <SystemBrand variant='sidebar' />
+      </SidebarHeader>
       {view && <SidebarViewHeader view={view} />}
 
-      <SidebarContent className='py-2'>
+      <SidebarContent className='py-3'>
         <AnimatePresence mode='wait' initial={false}>
           <motion.div
             key={key}
