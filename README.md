@@ -2,13 +2,14 @@
 
 ![new-api](/web/default/public/logo.png)
 
-# ShuShu 🐭 Community Station — Based on NEW-API
+# 鼠鼠🐭公益站-------基于NEW-API进行二次开发
 
-🍥 **Next-Generation AI Gateway — Unified Access to 40+ LLM Providers**
+
+🍥 **下一代 AI 网关 — 统一接入 40+ 大模型供应商**
 
 <p align="center">
-  <a href="./README.zh_CN.md">简体中文</a> |
-  <strong>English</strong>
+  <strong>简体中文</strong> |
+  <a href="./README.en.md">English</a>
 </p>
 
 <p align="center">
@@ -24,35 +25,35 @@
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-key-features">Key Features</a> •
-  <a href="#-deployment">Deployment</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-documentation">Documentation</a>
+  <a href="#-快速开始">快速开始</a> •
+  <a href="#-主要特性">主要特性</a> •
+  <a href="#-部署">部署</a> •
+  <a href="#-系统架构">系统架构</a> •
+  <a href="#-文档">文档</a>
 </p>
 
 </div>
 
 > [!NOTE]
-> **This project is a community fork and continuation of [NEW-API](https://github.com/Calcium-Ion/new-api) by [Calcium-Ion](https://github.com/Calcium-Ion).**
-> We are grateful to the original author and all contributors to the upstream project for their foundational work.
-> This fork continues development under the AGPL v3 license with additional features and improvements maintained by [QuantumNous](https://github.com/QuantumNous).
+> **本项目是基于 [NEW-API](https://github.com/Calcium-Ion/new-api) 的社区分支，由 [Calcium-Ion](https://github.com/Calcium-Ion) 原始创建。**
+> 我们衷心感谢原作者及上游项目的所有贡献者奠定的坚实基础。
+> 本分支在 AGPL v3 许可证下继续开发，由 [QuantumNous](https://github.com/QuantumNous) 维护，增加了一系列扩展功能与改进。
 
 ---
 
-## 📝 Overview
+## 📝 项目概述
 
-New API is a production-ready AI API gateway that aggregates 40+ upstream AI providers behind a single, OpenAI-compatible interface. It provides unified authentication, rate limiting, cost accounting, and a modern admin dashboard — purpose-built for organizations that need to manage multiple AI service accounts, track usage across teams, and control costs at scale.
+New API 是一个生产级 AI API 网关，将 40+ 上游 AI 供应商聚合到统一的 OpenAI 兼容接口之下。它提供统一的身份认证、速率限制、成本核算，以及现代化的管理后台——专为需要管理多个 AI 服务账号、跨团队追踪用量、规模化控制成本的组织而设计。
 
 > [!IMPORTANT]
-> - This project is intended for **lawful and authorized** AI API gateway, organization-level authentication, multi-model management, usage analytics, cost accounting, and private deployment scenarios.
-> - Users must lawfully obtain upstream API keys, accounts, model services, and interface permissions, and comply with upstream terms of service and applicable laws.
+> - 本项目仅面向**合法授权**的 AI API 网关、组织内部鉴权、多模型管理、用量统计、成本核算和私有化部署场景。
+> - 使用者必须合法取得上游 API Key、账号、模型服务及接口权限，并遵守上游服务条款及适用法律法规。
 
 ---
 
-## 🚀 Quick Start
+## 🚀 快速开始
 
-### Docker Compose (Recommended)
+### Docker Compose（推荐）
 
 ```bash
 git clone https://github.com/QuantumNous/new-api.git
@@ -60,19 +61,19 @@ cd new-api
 docker compose up -d
 ```
 
-Then visit `http://localhost:3000` to access the dashboard.
+部署完成后访问 `http://localhost:3000` 进入管理后台。
 
-### Docker
+### Docker 命令
 
 ```bash
-# SQLite (simplest)
+# 使用 SQLite（最简模式）
 docker run -d --name new-api \
   -p 3000:3000 \
   -e TZ=Asia/Shanghai \
   -v ./data:/data \
   quantumnous/new-api:latest
 
-# MySQL / PostgreSQL
+# 使用 MySQL / PostgreSQL
 docker run -d --name new-api \
   -p 3000:3000 \
   -e SQL_DSN="root:password@tcp(host:3306)/new-api?charset=utf8mb4&parseTime=True&loc=Local" \
@@ -81,190 +82,189 @@ docker run -d --name new-api \
   quantumnous/new-api:latest
 ```
 
-> For all environment variables, see [Environment Variables](#-environment-variables).
+> 完整环境变量说明见 [环境变量](#-环境变量) 章节。
 
 ---
 
-## ✨ Key Features
+## ✨ 主要特性
 
-### 🎨 Platform
+### 🎨 平台能力
 
-| Feature | Description |
-|---------|-------------|
-| 🖥️ Modern Dashboard | React 19 + TypeScript + Tailwind CSS admin console |
-| 🌍 Multi-Language | English, 简体中文, Français, Русский, 日本語, Tiếng Việt |
-| 📊 Analytics | Real-time usage dashboards, cost breakdowns, trend charts |
-| 🔐 Auth & SSO | JWT, WebAuthn/Passkeys, OAuth (GitHub, Discord, OIDC, Telegram, WeChat) |
-| 🗄️ Multi-Database | SQLite, MySQL ≥ 5.7.8, PostgreSQL ≥ 9.6 |
+| 特性 | 说明 |
+|------|------|
+| 🖥️ 现代化后台 | React 19 + TypeScript + Tailwind CSS 管理控制台 |
+| 🌍 多语言 | 简体中文、English、Français、Русский、日本語、Tiếng Việt |
+| 📊 数据分析 | 实时用量仪表盘、成本拆解、趋势图表 |
+| 🔐 认证体系 | JWT、WebAuthn/Passkeys、OAuth（GitHub、Discord、OIDC、Telegram、微信） |
+| 🗄️ 多数据库 | SQLite、MySQL ≥ 5.7.8、PostgreSQL ≥ 9.6 |
 
-### 🤖 AI Gateway
+### 🤖 AI 网关
 
-| Feature | Description |
-|---------|-------------|
-| 🔄 Protocol Translation | OpenAI ↔ Claude Messages ↔ Google Gemini ↔ OpenAI Responses |
-| 📡 40+ Providers | OpenAI, Claude, Gemini, AWS Bedrock, Azure, DeepSeek, Qwen, Ollama, and more |
-| 🎯 Smart Routing | Weighted load balancing, automatic failover, channel affinity |
-| 📡 Streaming | SSE streaming for chat, realtime, and async task polling |
+| 特性 | 说明 |
+|------|------|
+| 🔄 协议转换 | OpenAI ↔ Claude Messages ↔ Google Gemini ↔ OpenAI Responses |
+| 📡 40+ 供应商 | OpenAI、Claude、Gemini、AWS Bedrock、Azure、DeepSeek、通义千问、Ollama 等 |
+| 🎯 智能路由 | 加权负载均衡、故障自动切换、渠道亲和性策略 |
+| 📡 流式支持 | SSE 流式输出，覆盖聊天、实时对话、异步任务轮询 |
 
-### 💰 Billing & Cost Control
+### 💰 计费与成本控制
 
-| Feature | Description |
-|---------|-------------|
-| 📊 Usage Accounting | Per-request, per-token, and cache-hit cost tracking |
-| 🎯 Tiered Billing | Expression-based dynamic pricing with custom formulas |
-| 💳 Payment Gateways | Stripe, EPay, Creem, Waffo Pancake |
-| 🔑 Quota Management | User-level, group-level, and key-level quota allocation |
+| 特性 | 说明 |
+|------|------|
+| 📊 用量核算 | 按次、按 Token、按缓存命中的精确成本追踪 |
+| 🎯 分级计费 | 基于表达式的动态定价，支持自定义公式 |
+| 💳 支付集成 | Stripe、易支付、Creem、Waffo Pancake |
+| 🔑 额度管理 | 用户级、分组级、Key 级的多层额度分配 |
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ 系统架构
 
 ```
-Client (OpenAI SDK / Web UI)
+客户端 (OpenAI SDK / Web UI)
         │
         ▼
 ┌──────────────────────────────────┐
-│         New API Gateway           │
+│         New API 网关               │
 │  ┌─────────┐  ┌───────────────┐  │
-│  │  Router  │  │  Middleware    │  │
-│  │          │  │  Auth/Rate/CORS│  │
+│  │ 路由层    │  │  中间件层       │  │
+│  │          │  │  认证/限流/CORS │  │
 │  └────┬─────┘  └───────────────┘  │
 │       │                            │
 │  ┌────▼─────────────────────────┐ │
-│  │     Relay Engine              │ │
+│  │     中继引擎                   │ │
 │  │  OpenAI │ Claude │ Gemini ... │ │
 │  └────┬─────────────────────────┘ │
 │       │                            │
 │  ┌────▼─────┐  ┌───────────────┐  │
-│  │ Billing   │  │   Service     │  │
-│  │ Engine    │  │   Layer       │  │
+│  │ 计费引擎   │  │   服务层       │  │
 │  └──────────┘  └───────────────┘  │
 └──────────────────────────────────┘
         │
         ▼
 ┌──────────────────────────────────┐
 │  OpenAI · Claude · Gemini · AWS   │
-│  Azure · DeepSeek · Qwen · ...   │
-│      40+ Upstream Providers       │
+│  Azure · DeepSeek · 通义千问 ...  │
+│      40+ 上游 AI 供应商            │
 └──────────────────────────────────┘
 ```
 
 ---
 
-## 📡 Supported Providers
+## 📡 供应商支持
 
 <details>
-<summary><strong>38 Channel Adapters (click to expand)</strong></summary>
+<summary><strong>38 个渠道适配器（点击展开）</strong></summary>
 
-| Provider | Adapter |
-|----------|---------|
-| OpenAI / Azure | `openai` — Chat, Embeddings, Image, Audio, Video, Realtime, Responses |
-| Anthropic Claude | `claude` — Messages API, Computer Use, Citations |
-| Google Gemini | `gemini` — Multimodal, Native API, Vertex AI, Thinking mode |
-| AWS Bedrock | `aws` — Multi-model routing, IAM credential management |
-| DeepSeek | `deepseek` — V3/R1 models |
-| Alibaba Qwen (Tongyi) | `ali` — Chat, Image (Wan), Rerank |
-| Baidu Wenxin | `baidu`, `baidu_v2` |
-| Zhipu GLM / CogView | `zhipu`, `zhipu_4v` |
-| Moonshot (Kimi) | `moonshot` |
-| Mistral AI | `mistral` |
-| Cohere | `cohere` |
-| Ollama (local) | `ollama` |
-| SiliconFlow | `siliconflow` |
-| OpenRouter | `openrouter` |
-| Cloudflare Workers AI | `cloudflare` |
-| xAI (Grok) | `xai` |
-| Perplexity | `perplexity` |
-| Jina AI | `jina` |
-| iFlytek Spark | `xunfei` |
-| ByteDance Volcengine | `volcengine` |
-| Tencent Cloud | `tencent` |
-| Minimax | `minimax` |
-| Lingyiwanwu (01.AI) | `lingyiwanwu` |
-| 360 AI | `ai360` |
-| Jimeng (ByteDance) | `jimeng` |
-| Mimo | `mimo` |
-| MOKA AI | `mokaai` |
-| Dify | `dify` |
-| Coze | `coze` |
-| Replicate | `replicate` |
-| Google PaLM | `palm` |
-| Xorbits Inference | `xinference` |
-| SubModel (delegation) | `submodel` |
-| Task (async) | `task` — Suno, Sora, Kling, Hailuo, Vidu |
-| Codex | `codex` — OAuth-based access |
+| 供应商 | 适配器标识 | 支持功能 |
+|--------|-----------|----------|
+| OpenAI / Azure | `openai` | 聊天、嵌入、图像、音频、视频、实时、Responses |
+| Anthropic Claude | `claude` | Messages API、Computer Use、Citations |
+| Google Gemini | `gemini` | 多模态、原生 API、Vertex AI、思考模式 |
+| AWS Bedrock | `aws` | 多模型路由、IAM 凭证管理 |
+| DeepSeek | `deepseek` | V3/R1 模型 |
+| 阿里通义千问 | `ali` | 聊天、图像（通义万相）、Rerank |
+| 百度文心一言 | `baidu`、`baidu_v2` | 对话、插件 |
+| 智谱 GLM / CogView | `zhipu`、`zhipu_4v` | 对话、图像生成 |
+| Moonshot (Kimi) | `moonshot` | 对话 |
+| Mistral AI | `mistral` | 对话 |
+| Cohere | `cohere` | 对话、Rerank |
+| Ollama (本地) | `ollama` | 对话、流式 |
+| SiliconFlow | `siliconflow` | 对话、嵌入 |
+| OpenRouter | `openrouter` | 聚合路由 |
+| Cloudflare Workers AI | `cloudflare` | 对话 |
+| xAI (Grok) | `xai` | 对话 |
+| Perplexity | `perplexity` | 对话 |
+| Jina AI | `jina` | 嵌入、Rerank |
+| 讯飞星火 | `xunfei` | 对话 |
+| 字节跳动火山引擎 | `volcengine` | 对话、TTS |
+| 腾讯云 | `tencent` | 对话 |
+| Minimax | `minimax` | 对话、图像、TTS |
+| 零一万物 | `lingyiwanwu` | 对话 |
+| 360 AI | `ai360` | 对话 |
+| 即梦 (字节) | `jimeng` | 图像生成 |
+| Mimo | `mimo` | 视频 |
+| MOKA AI | `mokaai` | 对话 |
+| Dify | `dify` | ChatFlow |
+| Coze | `coze` | 对话 |
+| Replicate | `replicate` | 模型托管 |
+| Google PaLM | `palm` | 对话 |
+| Xorbits Inference | `xinference` | 本地推理 |
+| 子模型委托 | `submodel` | 转发代理 |
+| 异步任务 | `task` | Suno、Sora、Kling、Hailuo、Vidu |
+| Codex | `codex` | OAuth 访问 |
 
 </details>
 
 ---
 
-## 🚢 Deployment
+## 🚢 部署
 
-### Requirements
+### 环境要求
 
-| Component | Requirement |
-|-----------|-------------|
-| Database | SQLite (default), MySQL ≥ 5.7.8, or PostgreSQL ≥ 9.6 |
-| Cache | Redis (recommended) or in-memory cache |
-| Runtime | Docker / Docker Compose, or Go 1.25+ |
+| 组件 | 要求 |
+|------|------|
+| 数据库 | SQLite（默认）、MySQL ≥ 5.7.8 或 PostgreSQL ≥ 9.6 |
+| 缓存 | Redis（推荐）或内存缓存 |
+| 运行时 | Docker / Docker Compose，或 Go 1.25+ |
 
-### Environment Variables
+### 环境变量
 
 <details>
-<summary><strong>Essential Variables</strong></summary>
+<summary><strong>核心变量</strong></summary>
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SESSION_SECRET` | Session encryption key (**required** for multi-instance) | — |
-| `CRYPTO_SECRET` | Data encryption key (**required** for shared Redis) | — |
-| `SQL_DSN` | Database connection string | SQLite `data/new-api.db` |
-| `REDIS_CONN_STRING` | Redis connection string (`redis://host:port`) | — |
-| `STREAMING_TIMEOUT` | SSE streaming timeout (seconds) | `300` |
-| `STREAM_SCANNER_MAX_BUFFER_MB` | Max single-line buffer for stream scanner (MB) | `64` |
-| `MAX_REQUEST_BODY_MB` | Max decompressed request body (MB) | `32` |
-| `AZURE_DEFAULT_API_VERSION` | Azure API default version | `2025-04-01-preview` |
-| `TZ` | Container timezone | `Asia/Shanghai` |
-| `ERROR_LOG_ENABLED` | Enable detailed error logging | `false` |
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `SESSION_SECRET` | 会话加密密钥（**多机部署必须设置**） | — |
+| `CRYPTO_SECRET` | 数据加密密钥（**共享 Redis 必须设置**） | — |
+| `SQL_DSN` | 数据库连接字符串 | SQLite `data/new-api.db` |
+| `REDIS_CONN_STRING` | Redis 连接字符串 (`redis://host:port`) | — |
+| `STREAMING_TIMEOUT` | SSE 流式超时（秒） | `300` |
+| `STREAM_SCANNER_MAX_BUFFER_MB` | 流式扫描器单行最大缓冲（MB） | `64` |
+| `MAX_REQUEST_BODY_MB` | 请求体最大体积（MB，解压后计） | `32` |
+| `AZURE_DEFAULT_API_VERSION` | Azure API 默认版本 | `2025-04-01-preview` |
+| `TZ` | 容器时区 | `Asia/Shanghai` |
+| `ERROR_LOG_ENABLED` | 启用详细错误日志 | `false` |
 
 </details>
 
-### Production Checklist
+### 生产环境检查清单
 
 > [!WARNING]
-> - **Set `SESSION_SECRET`** — otherwise login sessions are inconsistent across instances.
-> - **Set `CRYPTO_SECRET`** when sharing Redis — otherwise encrypted data cannot be read.
-> - Use a reverse proxy (Nginx/Caddy) for TLS termination in production.
-> - Mount `/data` as a persistent volume when using Docker.
+> - **生产环境必须设置 `SESSION_SECRET`**，否则多实例登录状态不一致
+> - **共享 Redis 时必须设置 `CRYPTO_SECRET`**，否则加密数据无法跨实例解密
+> - 生产环境建议使用 Nginx/Caddy 反向代理进行 TLS 终止
+> - Docker 部署时务必挂载 `/data` 为持久化卷
 
 ---
 
-## 🔗 Related Projects
+## 🔗 相关项目
 
-| Project | Description |
-|---------|-------------|
-| [NEW-API](https://github.com/Calcium-Ion/new-api) | Upstream project (this is a fork) |
-| [One API](https://github.com/songquanpeng/one-api) | Original project (MIT License) |
-| [Midjourney-Proxy](https://github.com/novicezk/midjourney-proxy) | Midjourney integration |
+| 项目 | 说明 |
+|------|------|
+| [NEW-API](https://github.com/Calcium-Ion/new-api) | 上游项目（本项目为其分支） |
+| [One API](https://github.com/songquanpeng/one-api) | 原始项目（MIT 许可证） |
+| [Midjourney-Proxy](https://github.com/novicezk/midjourney-proxy) | Midjourney 接口集成 |
 
 ---
 
-## 📜 License
+## 📜 许可证
 
-This project is licensed under the [GNU Affero General Public License v3.0](./LICENSE).
+本项目采用 [GNU Affero 通用公共许可证 v3.0 (AGPL v3)](./LICENSE) 授权。
 
-It is developed as an open-source fork based on [NEW-API](https://github.com/Calcium-Ion/new-api), which itself originated from [One API](https://github.com/songquanpeng/one-api) (MIT License).
+本项目是基于 [NEW-API](https://github.com/Calcium-Ion/new-api) 的开源分支，NEW-API 本身源自 [One API](https://github.com/songquanpeng/one-api)（MIT 许可证）。
 
-For organizations that cannot use AGPL v3 licensed software, contact: [support@quantumnous.com](mailto:support@quantumnous.com)
+如果贵组织的政策不允许使用 AGPL v3 许可的软件，或希望规避 AGPL v3 的开源义务，请联系：[support@quantumnous.com](mailto:support@quantumnous.com)
 
 ---
 
 <div align="center">
 
-### 💖 Thanks for using New API
+### 💖 感谢使用 New API
 
-If this project helps you, please give it a ⭐️ Star!
+如果这个项目对你有帮助，欢迎给我们一个 ⭐️ Star！
 
-**[Releases](https://github.com/QuantumNous/new-api/releases)** • **[Issues](https://github.com/QuantumNous/new-api/issues)** • **[Discussions](https://github.com/QuantumNous/new-api/discussions)**
+**[发行版](https://github.com/QuantumNous/new-api/releases)** • **[问题反馈](https://github.com/QuantumNous/new-api/issues)** • **[讨论区](https://github.com/QuantumNous/new-api/discussions)**
 
 <sub>Built with ❤️ by QuantumNous</sub>
 
