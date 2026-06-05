@@ -127,3 +127,62 @@ docker compose up -d
 **其他可能的报错**:
 - `trust level too low` —— 不是网络问题,是 new-api 后台设置的「LinuxDO 最低信任等级」高于你的账号等级,调低即可。
 - 仍 `context deadline exceeded` —— 网络确实不通(被墙),需配置代理而非仅增大超时。
+
+---
+
+## 六、实战结论:超时改大仍不够,最终用反代解决 ✅
+
+本次实战中,改大超时后**仍然 20 秒超时**(耗时正好 20.003s),证明服务器(阿里云国内)
+到 `connect.linux.do` 是**被墙不通**,而非"慢"。因此最终采用 **Cloudflare Worker 反代** 彻底解决。
+
+> 关键认知:浏览器侧(Authorization Endpoint)用户能正常访问;只有**服务器后端**发起的
+> Token / User 两个请求被墙。new-api 支持用环境变量改这两个端点,正好用于指向反代。
+
+### 步骤 1:建 Cloudflare Worker 反代
+
+Cloudflare → Workers & Pages → Create → 从 Hello World 开始 → 把代码替换为:
+
+```js
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    url.hostname = 'connect.linux.do';   // 转发到 LinuxDO
+    return fetch(new Request(url, request));
+  }
+}
+```
+
+### 步骤 2:绑自定义域名
+
+给 Worker 绑一个走 Cloudflare 的自定义域名(`*.workers.dev` 国内被墙),例如 `ldproxy.你的域名`。
+
+### 步骤 3:服务器验证反代连通(关键关卡)
+
+```bash
+curl -X GET -m 15 https://ldproxy.你的域名/api/user
+# 返回 {"detail":"authorization required"} = LinuxDO 真实响应,链路通 ✅
+```
+
+### 步骤 4:让 new-api 改用反代端点
+
+`docker-compose.yml` 的 `new-api → environment`(同时务必删除任何无效的 HTTPS_PROXY/HTTP_PROXY 残留):
+
+```yaml
+      - LINUX_DO_TOKEN_ENDPOINT=https://ldproxy.你的域名/oauth2/token
+      - LINUX_DO_USER_ENDPOINT=https://ldproxy.你的域名/api/user
+```
+
+```bash
+docker compose up -d
+```
+
+### 验证成功日志
+
+```text
+GET /api/oauth/linuxdo?code=...  200  3.3s          ← 不再超时
+[SYS] 为新用户 xxx (角色: 1) 初始化边栏配置          ← 新用户创建,登录成功
+```
+
+> **小结**:`Token Endpoint` / `User Endpoint` 通过环境变量指向反代,是国内服务器接入
+> LinuxDO 登录最干净的方案——无需在服务器安装任何代理软件。Discord/OIDC 若也被墙,
+> 同理(Discord 无对应端点变量,需走代理;OIDC 可在后台改 endpoint)。
