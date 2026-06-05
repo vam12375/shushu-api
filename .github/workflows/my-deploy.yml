@@ -1,0 +1,71 @@
+# 自建部署专用：仅构建 amd64 镜像并推送到本仓库的 GHCR（GitHub Container Registry）
+# 触发方式：① 在 Actions 页面手动点击 Run workflow；② push 一个以 deploy- 开头的 tag
+# 说明：使用 GitHub 自带的 GITHUB_TOKEN，无需配置任何额外密钥
+name: My Deploy (GHCR amd64)
+
+on:
+  workflow_dispatch:        # 允许在 GitHub 网页上手动触发
+  push:
+    tags:
+      - 'deploy-*'          # 例如 git tag deploy-v1.0.0 && git push origin deploy-v1.0.0
+
+jobs:
+  build_and_push:
+    name: Build & push amd64 to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write       # 推送镜像到 GHCR 所需
+      contents: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # 解析版本号：手动触发用日期+短哈希，tag 触发用 tag 名
+      - name: Resolve version & write VERSION
+        id: version
+        run: |
+          if [ "${GITHUB_REF}" != "${GITHUB_REF#refs/tags/}" ]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="manual-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
+          fi
+          echo "$VERSION" > VERSION
+          echo "value=$VERSION" >> $GITHUB_OUTPUT
+          echo "构建版本：$VERSION"
+
+      # GHCR 仓库名必须全小写，这里把 owner/repo 统一转小写
+      - name: Normalize GHCR repository
+        run: echo "GHCR_REPOSITORY=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ env.GHCR_REPOSITORY }}:latest
+            ghcr.io/${{ env.GHCR_REPOSITORY }}:${{ steps.version.outputs.value }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image summary
+        run: |
+          echo "### 镜像已推送" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "ghcr.io/${GHCR_REPOSITORY}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "ghcr.io/${GHCR_REPOSITORY}:${{ steps.version.outputs.value }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

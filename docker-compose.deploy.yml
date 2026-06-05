@@ -1,0 +1,68 @@
+# 自建部署专用 docker-compose（阿里云 2C2G + 宝塔）
+# 镜像由 GitHub Actions 构建并推送到 GHCR，服务器只负责拉取运行
+#
+# 使用前必改项（搜索“改成”）：
+#   1. SQL_DSN / MYSQL_ROOT_PASSWORD 里的 MySQL 密码（两处必须一致）
+#   2. REDIS_CONN_STRING / redis-server 里的 Redis 密码（两处必须一致）
+#   3. SESSION_SECRET、CRYPTO_SECRET（各执行一次 openssl rand -hex 16 生成）
+version: '3.4'
+
+services:
+  new-api:
+    image: ghcr.io/vam12375/shushu-api:latest   # ← 你自己的 GHCR 镜像
+    container_name: new-api
+    restart: always
+    command: --log-dir /app/logs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    environment:
+      - SQL_DSN=root:改成你的MySQL密码@tcp(mysql:3306)/new-api
+      - REDIS_CONN_STRING=redis://:改成你的Redis密码@redis:6379
+      - SESSION_SECRET=改成随机字符串       # openssl rand -hex 16
+      - CRYPTO_SECRET=改成另一个随机字符串   # openssl rand -hex 16
+      - TZ=Asia/Shanghai
+      - ERROR_LOG_ENABLED=true
+      - BATCH_UPDATE_ENABLED=true
+      - NODE_NAME=new-api-node-1
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - new-api-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    command: ["redis-server", "--requirepass", "改成你的Redis密码"]
+    networks:
+      - new-api-network
+
+  mysql:
+    image: mysql:8.2
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 改成你的MySQL密码
+      MYSQL_DATABASE: new-api
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - new-api-network
+
+volumes:
+  mysql_data:
+
+networks:
+  new-api-network:
+    driver: bridge
