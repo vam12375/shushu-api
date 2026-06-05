@@ -27,6 +27,17 @@ services:
       - ERROR_LOG_ENABLED=true
       - BATCH_UPDATE_ENABLED=true
       - NODE_NAME=new-api-node-1
+      # —— 防滥用功能(IP 守卫)真实 IP 透传 ——
+      # 架构 用户→Cloudflare→宝塔Nginx→容器:请在宝塔反代里设
+      #   proxy_set_header X-Forwarded-For $http_cf_connecting_ip;
+      # 这样容器只会收到真实用户 IP;此处仅需信任 Docker 网关内网段:
+      - TRUSTED_PROXIES=172.16.0.0/12,127.0.0.1
+      # IP 守卫阈值(可选,默认即以下值;首次上线如想先观察可把阈值调大或设 IP_GUARD_ENABLED=false)
+      # - IP_GUARD_ENABLED=true
+      # - IP_GUARD_WINDOW_MINUTES=30
+      # - IP_GUARD_DISTINCT_IP_THRESHOLD=3
+      # - IP_GUARD_STRIKE_WINDOW_HOURS=24
+      # - IP_GUARD_STRIKE_THRESHOLD=3
     depends_on:
       - redis
       - mysql
