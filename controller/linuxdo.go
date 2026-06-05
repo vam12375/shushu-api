@@ -47,6 +47,15 @@ func LinuxDoBind(c *gin.Context) {
 		LinuxDOId: strconv.Itoa(linuxdoUser.Id),
 	}
 
+	// 黑名单拦截：被封禁的 LinuxDO 账号不允许绑定到任何用户
+	if model.IsLinuxDOIdBanned(user.LinuxDOId) {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该 Linux DO 账户因违规使用已被永久封禁，无法绑定。",
+		})
+		return
+	}
+
 	if model.IsLinuxDOIdAlreadyTaken(user.LinuxDOId) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -198,8 +207,18 @@ func LinuxdoOAuth(c *gin.Context) {
 		return
 	}
 
+	// 黑名单拦截：被 IP 守卫封禁的 LinuxDO 账号，即使删号也无法重新注册/登录
+	linuxDOIdStr := strconv.Itoa(linuxdoUser.Id)
+	if model.IsLinuxDOIdBanned(linuxDOIdStr) {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该 Linux DO 账户因违规使用已被永久封禁，无法登录或注册。",
+		})
+		return
+	}
+
 	user := model.User{
-		LinuxDOId: strconv.Itoa(linuxdoUser.Id),
+		LinuxDOId: linuxDOIdStr,
 	}
 
 	// Check if user exists

@@ -188,8 +188,24 @@ func AddToken(c *gin.Context) {
 		}
 	}
 	// 检查用户令牌数量是否已达上限
+	userId := c.GetInt("id")
+	// 公益站防滥用：普通用户每人最多创建 1 个令牌（管理员豁免）
+	if !model.IsAdmin(userId) {
+		existing, err := model.CountUserTokens(userId)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		if existing >= 1 {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "每个用户最多只能创建 1 个 API 令牌，请先删除现有令牌后再创建。",
+			})
+			return
+		}
+	}
 	maxTokens := operation_setting.GetMaxUserTokens()
-	count, err := model.CountUserTokens(c.GetInt("id"))
+	count, err := model.CountUserTokens(userId)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -208,7 +224,7 @@ func AddToken(c *gin.Context) {
 		return
 	}
 	cleanToken := model.Token{
-		UserId:             c.GetInt("id"),
+		UserId:             userId,
 		Name:               token.Name,
 		Key:                key,
 		CreatedTime:        common.GetTimestamp(),

@@ -153,6 +153,21 @@ func main() {
 
 	// Initialize HTTP server
 	server := gin.New()
+	// 配置可信反向代理：仅信任这些代理透传的 X-Forwarded-For，防止客户端伪造 IP 绕过 IP 守卫。
+	// 通过环境变量 TRUSTED_PROXIES 配置（逗号分隔的 IP/CIDR）；
+	// 留空则信任全部（兼容旧行为，但公益站强烈建议显式设置为你的 Nginx/Cloudflare 网段）。
+	if trustedProxies := os.Getenv("TRUSTED_PROXIES"); trustedProxies != "" {
+		proxies := make([]string, 0)
+		for _, p := range strings.Split(trustedProxies, ",") {
+			if p = strings.TrimSpace(p); p != "" {
+				proxies = append(proxies, p)
+			}
+		}
+		if err := server.SetTrustedProxies(proxies); err != nil {
+			common.FatalLog("failed to set trusted proxies: " + err.Error())
+		}
+		common.SysLog(fmt.Sprintf("已配置可信代理: %v", proxies))
+	}
 	server.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
 		common.SysLog(fmt.Sprintf("panic detected: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{
