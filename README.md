@@ -2,7 +2,7 @@
 
 ![new-api](/web/default/public/logo.png)
 
-# New API
+# ShuShu 🐭 Community Station — Based on NEW-API
 
 🍥 **Next-Generation AI Gateway — Unified Access to 40+ LLM Providers**
 
