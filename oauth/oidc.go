@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
@@ -74,7 +75,8 @@ func (p *OIDCProvider) ExchangeToken(ctx context.Context, code string, c *gin.Co
 	req.Header.Set("Accept", "application/json")
 
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		// OAuth 跨境请求默认超时 20s,可用环境变量 OAUTH_HTTP_TIMEOUT 覆盖(单位:秒)
+		Timeout: time.Duration(common.GetEnvOrDefault("OAUTH_HTTP_TIMEOUT", 20)) * time.Second,
 	}
 	res, err := client.Do(req)
 	if err != nil {
@@ -121,7 +123,8 @@ func (p *OIDCProvider) GetUserInfo(ctx context.Context, token *OAuthToken) (*OAu
 	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		// OAuth 跨境请求默认超时 20s,可用环境变量 OAUTH_HTTP_TIMEOUT 覆盖(单位:秒)
+		Timeout: time.Duration(common.GetEnvOrDefault("OAUTH_HTTP_TIMEOUT", 20)) * time.Second,
 	}
 	res, err := client.Do(req)
 	if err != nil {

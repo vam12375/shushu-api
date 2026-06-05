@@ -76,7 +76,8 @@ func (p *LinuxDOProvider) ExchangeToken(ctx context.Context, code string, c *gin
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	client := http.Client{Timeout: 5 * time.Second}
+	// OAuth 跨境请求默认超时 20s,可用环境变量 OAUTH_HTTP_TIMEOUT 覆盖(单位:秒)
+	client := http.Client{Timeout: time.Duration(common.GetEnvOrDefault("OAUTH_HTTP_TIMEOUT", 20)) * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
 		logger.LogError(ctx, fmt.Sprintf("[OAuth-LinuxDO] ExchangeToken error: %s", err.Error()))
@@ -119,7 +120,8 @@ func (p *LinuxDOProvider) GetUserInfo(ctx context.Context, token *OAuthToken) (*
 	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 	req.Header.Set("Accept", "application/json")
 
-	client := http.Client{Timeout: 5 * time.Second}
+	// OAuth 跨境请求默认超时 20s,可用环境变量 OAUTH_HTTP_TIMEOUT 覆盖(单位:秒)
+	client := http.Client{Timeout: time.Duration(common.GetEnvOrDefault("OAUTH_HTTP_TIMEOUT", 20)) * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
 		logger.LogError(ctx, fmt.Sprintf("[OAuth-LinuxDO] GetUserInfo error: %s", err.Error()))
