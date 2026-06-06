@@ -58,6 +58,10 @@ func UserCheckin(userId int) (*Checkin, error) {
 		return nil, errors.New("签到功能未启用")
 	}
 
+	if _, err := ScheduleLowBalanceQuotaResetIfNeeded(userId); err != nil {
+		common.SysLog("failed to schedule low balance quota reset before check-in: " + err.Error())
+	}
+
 	// 检查今天是否已签到
 	hasChecked, err := HasCheckedInToday(userId)
 	if err != nil {
