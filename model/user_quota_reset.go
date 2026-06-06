@@ -31,6 +31,38 @@ type UserQuotaResetState struct {
 	UpdatedAt    int64  `json:"updated_at" gorm:"bigint"`
 }
 
+type UserQuotaResetSummary struct {
+	ThresholdQuota      int   `json:"threshold_quota"`
+	TargetQuota         int   `json:"target_quota"`
+	ThresholdUSD        int64 `json:"threshold_usd"`
+	TargetUSD           int64 `json:"target_usd"`
+	DelaySeconds        int64 `json:"delay_seconds"`
+	PendingCount        int64 `json:"pending_count"`
+	DueCount            int64 `json:"due_count"`
+	CompletedCount      int64 `json:"completed_count"`
+	LowBalanceUserCount int64 `json:"low_balance_user_count"`
+	NextResetAt         int64 `json:"next_reset_at"`
+	Now                 int64 `json:"now"`
+}
+
+type UserQuotaResetListItem struct {
+	UserId       int    `json:"user_id"`
+	Username     string `json:"username"`
+	DisplayName  string `json:"display_name"`
+	Email        string `json:"email"`
+	UserGroup    string `json:"group"`
+	UserStatus   int    `json:"user_status"`
+	CurrentQuota int    `json:"current_quota"`
+	UsedQuota    int    `json:"used_quota"`
+	Status       string `json:"status"`
+	TriggeredAt  int64  `json:"triggered_at"`
+	ResetAt      int64  `json:"reset_at"`
+	CompletedAt  int64  `json:"completed_at"`
+	TriggerQuota int    `json:"trigger_quota"`
+	CreatedAt    int64  `json:"created_at"`
+	UpdatedAt    int64  `json:"updated_at"`
+}
+
 func (s *UserQuotaResetState) BeforeCreate(tx *gorm.DB) error {
 	now := common.GetTimestamp()
 	s.CreatedAt = now
@@ -49,6 +81,10 @@ func LowBalanceResetThresholdQuota() int {
 
 func LowBalanceResetTargetQuota() int {
 	return dollarsToQuota(lowBalanceResetTargetUSD)
+}
+
+func LowBalanceResetDelaySeconds() int64 {
+	return lowBalanceResetDelaySeconds
 }
 
 func dollarsToQuota(amount int64) int {
@@ -132,6 +168,90 @@ func MaybeScheduleLowBalanceQuotaReset(userId int, quota int) (bool, error) {
 		))
 	}
 	return scheduled, nil
+}
+
+func GetLowBalanceQuotaResetSummary() (*UserQuotaResetSummary, error) {
+	now := GetDBTimestamp()
+	threshold := LowBalanceResetThresholdQuota()
+	summary := &UserQuotaResetSummary{
+		ThresholdQuota: threshold,
+		TargetQuota:    LowBalanceResetTargetQuota(),
+		ThresholdUSD:   lowBalanceResetThresholdUSD,
+		TargetUSD:      lowBalanceResetTargetUSD,
+		DelaySeconds:   lowBalanceResetDelaySeconds,
+		Now:            now,
+	}
+
+	if err := DB.Model(&UserQuotaResetState{}).
+		Where("status = ?", UserQuotaResetStatusPending).
+		Count(&summary.PendingCount).Error; err != nil {
+		return nil, err
+	}
+	if err := DB.Model(&UserQuotaResetState{}).
+		Where("status = ? AND reset_at > 0 AND reset_at <= ?", UserQuotaResetStatusPending, now).
+		Count(&summary.DueCount).Error; err != nil {
+		return nil, err
+	}
+	if err := DB.Model(&UserQuotaResetState{}).
+		Where("status = ?", UserQuotaResetStatusCompleted).
+		Count(&summary.CompletedCount).Error; err != nil {
+		return nil, err
+	}
+	if threshold > 0 {
+		if err := DB.Model(&User{}).
+			Where("status = ? AND quota < ?", common.UserStatusEnabled, threshold).
+			Count(&summary.LowBalanceUserCount).Error; err != nil {
+			return nil, err
+		}
+	}
+	if err := DB.Model(&UserQuotaResetState{}).
+		Where("status = ? AND reset_at > ?", UserQuotaResetStatusPending, now).
+		Select("COALESCE(MIN(reset_at), 0)").
+		Scan(&summary.NextResetAt).Error; err != nil {
+		return nil, err
+	}
+
+	return summary, nil
+}
+
+func GetLowBalanceQuotaResetStates(status string, pageInfo *common.PageInfo) ([]UserQuotaResetListItem, int64, error) {
+	var items []UserQuotaResetListItem
+	var total int64
+
+	query := DB.Table("user_quota_reset_states AS s").
+		Joins("LEFT JOIN users AS u ON u.id = s.user_id")
+
+	switch status {
+	case UserQuotaResetStatusPending, UserQuotaResetStatusCompleted:
+		query = query.Where("s.status = ?", status)
+	case "all", "":
+	default:
+		query = query.Where("s.status = ?", UserQuotaResetStatusPending)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	orderExpr := "CASE WHEN s.status = 'pending' THEN 0 ELSE 1 END, s.reset_at asc, s.completed_at desc, s.user_id asc"
+	if status == UserQuotaResetStatusPending {
+		orderExpr = "s.reset_at asc, s.user_id asc"
+	} else if status == UserQuotaResetStatusCompleted {
+		orderExpr = "s.completed_at desc, s.user_id asc"
+	}
+
+	groupCol := "u." + commonGroupCol
+	err := query.
+		Select("s.user_id, COALESCE(u.username, '') AS username, COALESCE(u.display_name, '') AS display_name, COALESCE(u.email, '') AS email, COALESCE(" + groupCol + ", '') AS user_group, COALESCE(u.status, 0) AS user_status, COALESCE(u.quota, 0) AS current_quota, COALESCE(u.used_quota, 0) AS used_quota, s.status, s.triggered_at, s.reset_at, s.completed_at, s.trigger_quota, s.created_at, s.updated_at").
+		Order(orderExpr).
+		Limit(pageInfo.GetPageSize()).
+		Offset(pageInfo.GetStartIdx()).
+		Scan(&items).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
 }
 
 func ScheduleLowBalanceQuotaResets(limit int) (int, error) {

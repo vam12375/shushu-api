@@ -150,6 +150,12 @@ export function SidebarModulesSection({
         title: t('Subscription Management'),
         description: t('Manage subscription plans and pricing.'),
       },
+      quota_reset: {
+        title: t('Balance Resets'),
+        description: t(
+          'Observe low-balance reset schedules and completed states.'
+        ),
+      },
     },
   }
   const formDefaults = useMemo(() => config, [config])

@@ -68,6 +68,82 @@ func TestMaybeScheduleLowBalanceQuotaReset(t *testing.T) {
 	assert.False(t, scheduled)
 }
 
+func TestGetLowBalanceQuotaResetMonitorData(t *testing.T) {
+	truncateTables(t)
+	useQuotaPerUnitForResetTest(t, 100)
+
+	now := GetDBTimestamp()
+	require.NoError(t, DB.Create(&User{
+		Id:          204,
+		Username:    "quota_reset_monitor_pending",
+		DisplayName: "Pending Reset",
+		Email:       "pending-reset@example.com",
+		Status:      common.UserStatusEnabled,
+		Quota:       10 * 100,
+		UsedQuota:   7 * 100,
+		Group:       "monitor",
+		AffCode:     "quota_reset_monitor_pending_aff",
+	}).Error)
+	require.NoError(t, DB.Create(&User{
+		Id:          205,
+		Username:    "quota_reset_monitor_completed",
+		DisplayName: "Completed Reset",
+		Email:       "completed-reset@example.com",
+		Status:      common.UserStatusEnabled,
+		Quota:       80 * 100,
+		UsedQuota:   9 * 100,
+		Group:       "monitor",
+		AffCode:     "quota_reset_monitor_completed_aff",
+	}).Error)
+	require.NoError(t, DB.Create(&UserQuotaResetState{
+		UserId:       204,
+		Status:       UserQuotaResetStatusPending,
+		TriggeredAt:  now - lowBalanceResetDelaySeconds,
+		ResetAt:      now - 1,
+		TriggerQuota: 10 * 100,
+	}).Error)
+	require.NoError(t, DB.Create(&UserQuotaResetState{
+		UserId:       205,
+		Status:       UserQuotaResetStatusCompleted,
+		TriggeredAt:  now - lowBalanceResetDelaySeconds - 100,
+		ResetAt:      0,
+		CompletedAt:  now - 10,
+		TriggerQuota: 20 * 100,
+	}).Error)
+
+	summary, err := GetLowBalanceQuotaResetSummary()
+	require.NoError(t, err)
+	assert.Equal(t, LowBalanceResetThresholdQuota(), summary.ThresholdQuota)
+	assert.Equal(t, LowBalanceResetTargetQuota(), summary.TargetQuota)
+	assert.Equal(t, int64(lowBalanceResetDelaySeconds), summary.DelaySeconds)
+	assert.Equal(t, int64(1), summary.PendingCount)
+	assert.Equal(t, int64(1), summary.DueCount)
+	assert.Equal(t, int64(1), summary.CompletedCount)
+	assert.Equal(t, int64(1), summary.LowBalanceUserCount)
+	assert.Equal(t, int64(0), summary.NextResetAt)
+
+	pageInfo := &common.PageInfo{Page: 1, PageSize: 10}
+	items, total, err := GetLowBalanceQuotaResetStates("all", pageInfo)
+	require.NoError(t, err)
+	require.Len(t, items, 2)
+	assert.Equal(t, int64(2), total)
+	assert.Equal(t, 204, items[0].UserId)
+	assert.Equal(t, "Pending Reset", items[0].DisplayName)
+	assert.Equal(t, "monitor", items[0].UserGroup)
+	assert.Equal(t, 10*100, items[0].CurrentQuota)
+	assert.Equal(t, 7*100, items[0].UsedQuota)
+	assert.Equal(t, UserQuotaResetStatusPending, items[0].Status)
+
+	pendingItems, pendingTotal, err := GetLowBalanceQuotaResetStates(
+		UserQuotaResetStatusPending,
+		pageInfo,
+	)
+	require.NoError(t, err)
+	require.Len(t, pendingItems, 1)
+	assert.Equal(t, int64(1), pendingTotal)
+	assert.Equal(t, 204, pendingItems[0].UserId)
+}
+
 func TestResetDueLowBalanceQuotaPreservesCheckinRewards(t *testing.T) {
 	truncateTables(t)
 	useQuotaPerUnitForResetTest(t, 100)

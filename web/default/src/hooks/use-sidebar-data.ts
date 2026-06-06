@@ -27,6 +27,7 @@ import {
   ListTodo,
   MessageSquare,
   Radio,
+  RefreshCw,
   Settings,
   Ticket,
   User,
@@ -34,6 +35,8 @@ import {
   Wallet,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/stores/auth-store'
+import { ROLE } from '@/lib/roles'
 import { type SidebarData } from '@/components/layout/types'
 
 /**
@@ -44,6 +47,8 @@ import { type SidebarData } from '@/components/layout/types'
  */
 export function useSidebarData(): SidebarData {
   const { t } = useTranslation()
+  const { auth } = useAuthStore()
+  const isSuperAdmin = (auth.user?.role ?? 0) >= ROLE.SUPER_ADMIN
 
   return {
     navGroups: [
@@ -141,6 +146,15 @@ export function useSidebarData(): SidebarData {
             url: '/subscriptions',
             icon: CreditCard,
           },
+          ...(isSuperAdmin
+            ? [
+                {
+                  title: t('Balance Resets'),
+                  url: '/quota-reset',
+                  icon: RefreshCw,
+                },
+              ]
+            : []),
           {
             title: t('System Settings'),
             url: '/system-settings/site',

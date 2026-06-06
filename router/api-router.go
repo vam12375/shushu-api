@@ -194,6 +194,11 @@ func SetApiRouter(router *gin.Engine) {
 			performanceRoute.GET("/logs", controller.GetLogFiles)
 			performanceRoute.DELETE("/logs", controller.CleanupLogFiles)
 		}
+		quotaResetRoute := apiRouter.Group("/quota_reset")
+		quotaResetRoute.Use(middleware.RootAuth())
+		{
+			quotaResetRoute.GET("/", controller.GetLowBalanceQuotaResetMonitor)
+		}
 		ratioSyncRoute := apiRouter.Group("/ratio_sync")
 		ratioSyncRoute.Use(middleware.RootAuth())
 		{
