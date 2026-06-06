@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { api } from '@/lib/api'
 import type {
   ApiResponse,
+  QuotaResetAllResult,
   QuotaResetMonitorData,
   QuotaResetStatus,
 } from './types'
@@ -35,5 +36,12 @@ export async function getQuotaResetMonitor(params: {
       page_size: params.pageSize,
     },
   })
+  return res.data
+}
+
+export async function resetAllLowBalanceUsersToTargetQuota(): Promise<
+  ApiResponse<QuotaResetAllResult>
+> {
+  const res = await api.post('/api/quota_reset/reset_all')
   return res.data
 }

@@ -31,3 +31,13 @@ func GetLowBalanceQuotaResetMonitor(c *gin.Context) {
 		"states":  pageInfo,
 	})
 }
+
+func ResetAllLowBalanceUsersToTargetQuota(c *gin.Context) {
+	result, err := model.ResetAllLowBalanceUsersToTargetQuota()
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	common.ApiSuccess(c, result)
+}

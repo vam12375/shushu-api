@@ -32,17 +32,18 @@ type UserQuotaResetState struct {
 }
 
 type UserQuotaResetSummary struct {
-	ThresholdQuota      int   `json:"threshold_quota"`
-	TargetQuota         int   `json:"target_quota"`
-	ThresholdUSD        int64 `json:"threshold_usd"`
-	TargetUSD           int64 `json:"target_usd"`
-	DelaySeconds        int64 `json:"delay_seconds"`
-	PendingCount        int64 `json:"pending_count"`
-	DueCount            int64 `json:"due_count"`
-	CompletedCount      int64 `json:"completed_count"`
-	LowBalanceUserCount int64 `json:"low_balance_user_count"`
-	NextResetAt         int64 `json:"next_reset_at"`
-	Now                 int64 `json:"now"`
+	ThresholdQuota             int   `json:"threshold_quota"`
+	TargetQuota                int   `json:"target_quota"`
+	ThresholdUSD               int64 `json:"threshold_usd"`
+	TargetUSD                  int64 `json:"target_usd"`
+	DelaySeconds               int64 `json:"delay_seconds"`
+	PendingCount               int64 `json:"pending_count"`
+	DueCount                   int64 `json:"due_count"`
+	CompletedCount             int64 `json:"completed_count"`
+	LowBalanceUserCount        int64 `json:"low_balance_user_count"`
+	OneClickResetEligibleCount int64 `json:"one_click_reset_eligible_count"`
+	NextResetAt                int64 `json:"next_reset_at"`
+	Now                        int64 `json:"now"`
 }
 
 type UserQuotaResetListItem struct {
@@ -61,6 +62,12 @@ type UserQuotaResetListItem struct {
 	TriggerQuota int    `json:"trigger_quota"`
 	CreatedAt    int64  `json:"created_at"`
 	UpdatedAt    int64  `json:"updated_at"`
+}
+
+type UserQuotaResetAllResult struct {
+	TargetQuota   int   `json:"target_quota"`
+	TargetUSD     int64 `json:"target_usd"`
+	AffectedCount int   `json:"affected_count"`
 }
 
 func (s *UserQuotaResetState) BeforeCreate(tx *gorm.DB) error {
@@ -204,6 +211,13 @@ func GetLowBalanceQuotaResetSummary() (*UserQuotaResetSummary, error) {
 			return nil, err
 		}
 	}
+	if summary.TargetQuota > 0 {
+		if err := DB.Model(&User{}).
+			Where("quota < ?", summary.TargetQuota).
+			Count(&summary.OneClickResetEligibleCount).Error; err != nil {
+			return nil, err
+		}
+	}
 	if err := DB.Model(&UserQuotaResetState{}).
 		Where("status = ? AND reset_at > ?", UserQuotaResetStatusPending, now).
 		Select("COALESCE(MIN(reset_at), 0)").
@@ -252,6 +266,88 @@ func GetLowBalanceQuotaResetStates(status string, pageInfo *common.PageInfo) ([]
 	}
 
 	return items, total, nil
+}
+
+func ResetAllLowBalanceUsersToTargetQuota() (*UserQuotaResetAllResult, error) {
+	target := LowBalanceResetTargetQuota()
+	result := &UserQuotaResetAllResult{
+		TargetQuota: target,
+		TargetUSD:   lowBalanceResetTargetUSD,
+	}
+	if target <= 0 {
+		return result, errors.New("low balance reset target is not configured")
+	}
+
+	var candidates []User
+	if err := DB.
+		Select("id", "quota").
+		Where("quota < ?", target).
+		Order("id asc").
+		Find(&candidates).Error; err != nil {
+		return nil, err
+	}
+	if len(candidates) == 0 {
+		return result, nil
+	}
+
+	now := GetDBTimestamp()
+	var updatedUsers []User
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		for _, user := range candidates {
+			update := tx.Model(&User{}).
+				Where("id = ? AND quota < ?", user.Id, target).
+				Update("quota", target)
+			if update.Error != nil {
+				return update.Error
+			}
+			if update.RowsAffected == 0 {
+				continue
+			}
+			stateUpdate := tx.Model(&UserQuotaResetState{}).
+				Where("user_id = ?", user.Id).
+				Updates(map[string]interface{}{
+					"status":        UserQuotaResetStatusCompleted,
+					"triggered_at":  now,
+					"reset_at":      int64(0),
+					"completed_at":  now,
+					"trigger_quota": user.Quota,
+				})
+			if stateUpdate.Error != nil {
+				return stateUpdate.Error
+			}
+			if stateUpdate.RowsAffected == 0 {
+				if err := tx.Create(&UserQuotaResetState{
+					UserId:       user.Id,
+					Status:       UserQuotaResetStatusCompleted,
+					TriggeredAt:  now,
+					ResetAt:      0,
+					CompletedAt:  now,
+					TriggerQuota: user.Quota,
+				}).Error; err != nil {
+					return err
+				}
+			}
+			updatedUsers = append(updatedUsers, user)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result.AffectedCount = len(updatedUsers)
+	for _, user := range updatedUsers {
+		if err := updateUserQuotaCache(user.Id, target); err != nil {
+			common.SysLog("failed to update user quota cache after one-click low balance reset: " + err.Error())
+		}
+		RecordLog(user.Id, LogTypeSystem, fmt.Sprintf(
+			"One-click low balance reset completed: balance reset from %s to %s",
+			logger.LogQuota(user.Quota),
+			logger.LogQuota(target),
+		))
+	}
+
+	return result, nil
 }
 
 func ScheduleLowBalanceQuotaResets(limit int) (int, error) {

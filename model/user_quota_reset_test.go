@@ -144,6 +144,79 @@ func TestGetLowBalanceQuotaResetMonitorData(t *testing.T) {
 	assert.Equal(t, 204, pendingItems[0].UserId)
 }
 
+func TestResetAllLowBalanceUsersToTargetQuota(t *testing.T) {
+	truncateTables(t)
+	useQuotaPerUnitForResetTest(t, 100)
+
+	now := GetDBTimestamp()
+	target := LowBalanceResetTargetQuota()
+	require.NoError(t, DB.Create(&User{
+		Id:       206,
+		Username: "quota_reset_all_low",
+		Status:   common.UserStatusEnabled,
+		Quota:    10 * 100,
+		AffCode:  "quota_reset_all_low_aff",
+	}).Error)
+	require.NoError(t, DB.Create(&User{
+		Id:       207,
+		Username: "quota_reset_all_at_target",
+		Status:   common.UserStatusEnabled,
+		Quota:    target,
+		AffCode:  "quota_reset_all_at_target_aff",
+	}).Error)
+	require.NoError(t, DB.Create(&User{
+		Id:       208,
+		Username: "quota_reset_all_above_target",
+		Status:   common.UserStatusEnabled,
+		Quota:    target + 1,
+		AffCode:  "quota_reset_all_above_target_aff",
+	}).Error)
+	require.NoError(t, DB.Create(&User{
+		Id:       209,
+		Username: "quota_reset_all_disabled",
+		Status:   common.UserStatusDisabled,
+		Quota:    10 * 100,
+		AffCode:  "quota_reset_all_disabled_aff",
+	}).Error)
+	require.NoError(t, DB.Create(&UserQuotaResetState{
+		UserId:       206,
+		Status:       UserQuotaResetStatusPending,
+		TriggeredAt:  now - 60,
+		ResetAt:      now + 60,
+		TriggerQuota: 10 * 100,
+	}).Error)
+
+	summaryBefore, err := GetLowBalanceQuotaResetSummary()
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), summaryBefore.OneClickResetEligibleCount)
+
+	result, err := ResetAllLowBalanceUsersToTargetQuota()
+	require.NoError(t, err)
+	assert.Equal(t, target, result.TargetQuota)
+	assert.Equal(t, int64(lowBalanceResetTargetUSD), result.TargetUSD)
+	assert.Equal(t, 2, result.AffectedCount)
+	assert.Equal(t, target, getUserQuotaForQuotaResetTest(t, 206))
+	assert.Equal(t, target, getUserQuotaForQuotaResetTest(t, 207))
+	assert.Equal(t, target+1, getUserQuotaForQuotaResetTest(t, 208))
+	assert.Equal(t, target, getUserQuotaForQuotaResetTest(t, 209))
+
+	var state UserQuotaResetState
+	require.NoError(t, DB.Where("user_id = ?", 206).First(&state).Error)
+	assert.Equal(t, UserQuotaResetStatusCompleted, state.Status)
+	assert.Greater(t, state.CompletedAt, int64(0))
+	assert.Equal(t, int64(0), state.ResetAt)
+
+	var disabledUserState UserQuotaResetState
+	require.NoError(t, DB.Where("user_id = ?", 209).First(&disabledUserState).Error)
+	assert.Equal(t, UserQuotaResetStatusCompleted, disabledUserState.Status)
+	assert.Greater(t, disabledUserState.CompletedAt, int64(0))
+	assert.Equal(t, 10*100, disabledUserState.TriggerQuota)
+
+	result, err = ResetAllLowBalanceUsersToTargetQuota()
+	require.NoError(t, err)
+	assert.Equal(t, 0, result.AffectedCount)
+}
+
 func TestResetDueLowBalanceQuotaPreservesCheckinRewards(t *testing.T) {
 	truncateTables(t)
 	useQuotaPerUnitForResetTest(t, 100)

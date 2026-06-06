@@ -16,9 +16,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { ElementType } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { TFunction } from 'i18next'
 import {
   Activity,
@@ -26,16 +26,30 @@ import {
   CircleCheck,
   Clock3,
   RefreshCw,
+  ShieldAlert,
   TimerReset,
   UsersRound,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import {
   formatCurrencyUSD,
   formatQuota,
   formatTimestampToDate,
 } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -66,7 +80,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SectionPageLayout } from '@/components/layout'
 import { StatusBadge } from '@/components/status-badge'
 import { TableId } from '@/components/table-id'
-import { getQuotaResetMonitor } from './api'
+import {
+  getQuotaResetMonitor,
+  resetAllLowBalanceUsersToTargetQuota,
+} from './api'
 import type {
   QuotaResetMonitorData,
   QuotaResetState,
@@ -194,14 +211,22 @@ function PolicyOverview(props: {
   summary?: QuotaResetSummary
   loading: boolean
   isFetching: boolean
+  isResetting: boolean
   onRefresh: () => void
+  onResetAll: () => Promise<void>
 }) {
   const { t } = useTranslation()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const summary = props.summary
+  const targetLabel = summary
+    ? `${formatCurrencyUSD(summary.target_usd)} / ${formatQuota(summary.target_quota)}`
+    : t('Reset target')
   const pendingProgress =
     summary && summary.low_balance_user_count > 0
       ? (summary.pending_count / summary.low_balance_user_count) * 100
       : 0
+  const eligibleCount = summary?.one_click_reset_eligible_count ?? 0
+  const canReset = !props.loading && !props.isResetting && eligibleCount > 0
 
   return (
     <Card>
@@ -219,15 +244,67 @@ function PolicyOverview(props: {
           )}
         </CardDescription>
         <CardAction>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={props.onRefresh}
-            disabled={props.isFetching}
-          >
-            <RefreshCw data-icon='inline-start' />
-            {t('Refresh')}
-          </Button>
+          <div className='flex flex-wrap justify-end gap-2'>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    variant='destructive'
+                    size='sm'
+                    disabled={!canReset}
+                  />
+                }
+              >
+                <TimerReset data-icon='inline-start' />
+                {props.isResetting ? t('Resetting...') : t('One-click reset')}
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogMedia>
+                    <ShieldAlert aria-hidden='true' />
+                  </AlertDialogMedia>
+                  <AlertDialogTitle>
+                    {t('Confirm one-click balance reset?')}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t(
+                      'This will immediately set every user below {{amount}} to {{amount}}. Users at or above {{amount}} will be left untouched.',
+                      { amount: targetLabel }
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={props.isResetting}>
+                    {t('Cancel')}
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                    disabled={props.isResetting}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      void props
+                        .onResetAll()
+                        .then(() => setConfirmOpen(false))
+                        .catch(() => undefined)
+                    }}
+                  >
+                    {props.isResetting
+                      ? t('Resetting...')
+                      : t('Reset balances')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={props.onRefresh}
+              disabled={props.isFetching || props.isResetting}
+            >
+              <RefreshCw data-icon='inline-start' />
+              {t('Refresh')}
+            </Button>
+          </div>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -243,11 +320,7 @@ function PolicyOverview(props: {
             />
             <PolicyMetric
               label={t('Reset target')}
-              value={
-                props.loading || !summary
-                  ? undefined
-                  : `${formatCurrencyUSD(summary.target_usd)} / ${formatQuota(summary.target_quota)}`
-              }
+              value={props.loading || !summary ? undefined : targetLabel}
             />
             <PolicyMetric
               label={t('Waiting window')}
@@ -292,6 +365,15 @@ function PolicyOverview(props: {
               value={clamp(pendingProgress, 0, 100)}
               className='mt-3 h-2'
             />
+            <div className='text-muted-foreground mt-3 text-xs'>
+              {props.loading || !summary ? (
+                <Skeleton className='h-3 w-32' />
+              ) : (
+                t('{{count}} users are below the one-click reset target.', {
+                  count: eligibleCount,
+                })
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
@@ -566,6 +648,31 @@ export function QuotaReset(props: QuotaResetProps) {
     refetchInterval: 30000,
     placeholderData: (previous) => previous,
   })
+  const resetAllMutation = useMutation({
+    mutationFn: resetAllLowBalanceUsersToTargetQuota,
+    onSuccess: async (response) => {
+      if (!response.success || !response.data) {
+        toast.error(response.message || t('Failed to reset balances'))
+        return
+      }
+      if (response.data.affected_count === 0) {
+        toast.info(t('No eligible users to reset'))
+      } else {
+        toast.success(
+          t('Reset {{count}} users to {{amount}}', {
+            count: response.data.affected_count,
+            amount: formatQuota(response.data.target_quota),
+          })
+        )
+      }
+      await query.refetch()
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : t('Failed to reset balances')
+      )
+    },
+  })
 
   const data = query.data
   const summary = data?.summary
@@ -628,7 +735,11 @@ export function QuotaReset(props: QuotaResetProps) {
             summary={summary}
             loading={query.isLoading}
             isFetching={query.isFetching}
+            isResetting={resetAllMutation.isPending}
             onRefresh={() => void query.refetch()}
+            onResetAll={async () => {
+              await resetAllMutation.mutateAsync()
+            }}
           />
 
           <RecordsCard

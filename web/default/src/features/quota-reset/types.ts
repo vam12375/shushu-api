@@ -29,8 +29,15 @@ export interface QuotaResetSummary {
   due_count: number
   completed_count: number
   low_balance_user_count: number
+  one_click_reset_eligible_count: number
   next_reset_at: number
   now: number
+}
+
+export interface QuotaResetAllResult {
+  target_quota: number
+  target_usd: number
+  affected_count: number
 }
 
 export interface QuotaResetState {

@@ -198,6 +198,7 @@ func SetApiRouter(router *gin.Engine) {
 		quotaResetRoute.Use(middleware.RootAuth())
 		{
 			quotaResetRoute.GET("/", controller.GetLowBalanceQuotaResetMonitor)
+			quotaResetRoute.POST("/reset_all", controller.ResetAllLowBalanceUsersToTargetQuota)
 		}
 		ratioSyncRoute := apiRouter.Group("/ratio_sync")
 		ratioSyncRoute.Use(middleware.RootAuth())
