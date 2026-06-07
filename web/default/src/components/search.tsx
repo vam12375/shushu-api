@@ -37,7 +37,7 @@ export function Search({ className = '', placeholder }: SearchProps) {
     <Button
       variant='outline'
       className={cn(
-        'bg-card/80 group text-muted-foreground hover:bg-card border-border relative h-10 w-full flex-1 justify-start rounded-full ps-10 pe-16 text-sm font-semibold shadow-none sm:w-44 md:flex-none lg:w-56 xl:w-72',
+        'bg-card/80 group text-muted-foreground hover:bg-card border-border relative size-9 flex-none justify-center rounded-full p-0 text-sm font-semibold shadow-none sm:h-10 sm:w-44 sm:justify-start sm:ps-10 sm:pe-16 md:flex-none lg:w-56 xl:w-72',
         className
       )}
       onClick={() => setOpen(true)}
@@ -45,9 +45,9 @@ export function Search({ className = '', placeholder }: SearchProps) {
     >
       <SearchIcon
         aria-hidden='true'
-        className='absolute start-3 top-1/2 -translate-y-1/2'
+        className='absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:start-3 sm:translate-x-0'
       />
-      <span className='truncate'>{resolvedPlaceholder}</span>
+      <span className='hidden truncate sm:inline'>{resolvedPlaceholder}</span>
       <kbd className='bg-background group-hover:bg-muted pointer-events-none absolute end-2 top-1/2 hidden h-5 -translate-y-1/2 items-center gap-1 rounded-md border px-1.5 font-mono text-[10px] font-bold opacity-100 select-none sm:flex'>
         <span className='text-xs'>⌘</span>
         {t('K')}

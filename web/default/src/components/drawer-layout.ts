@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 
 export const sideDrawerContentClassName = (className?: string) =>
   cn(
-    'bg-background text-foreground flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 shadow-none',
+    'bg-background text-foreground flex h-dvh w-full max-w-full flex-col gap-0 overflow-hidden p-0 shadow-none',
     className
   )
 
@@ -39,7 +39,7 @@ export const sideDrawerFormClassName = (className?: string) =>
 
 export const sideDrawerFooterClassName = (className?: string) =>
   cn(
-    'border-border/70 bg-background/95 grid grid-cols-2 gap-2 border-t px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:flex sm:flex-row sm:justify-end sm:px-6 sm:py-4',
+    'border-border/70 bg-background/95 grid grid-cols-2 gap-2 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:flex sm:flex-row sm:justify-end sm:px-6 sm:py-4',
     className
   )
 

@@ -144,6 +144,12 @@ For commercial licensing, please contact support@quantumnous.com
   --skeleton-highlight: oklch(0.98 0.006 88);
 }
 
+@media (max-width: 639px) {
+  :root {
+    --app-header-height: 3.75rem;
+  }
+}
+
 .dark {
   /* OpenAI-like dark mode: nearly black chrome, readable raised surfaces. */
   --background: oklch(0.185 0 0);

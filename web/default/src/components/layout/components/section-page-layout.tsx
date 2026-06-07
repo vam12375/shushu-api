@@ -77,31 +77,31 @@ export function SectionPageLayout(props: SectionPageLayoutProps) {
   return (
     <PageFooterProvider container={footerContainer}>
       <Main>
-        <div className='mx-auto w-full max-w-[1680px] shrink-0 px-4 pt-5 pb-3 sm:px-6 sm:pt-7 sm:pb-4'>
+        <div className='mx-auto w-full max-w-[1680px] shrink-0 px-3 pt-4 pb-2.5 sm:px-6 sm:pt-7 sm:pb-4'>
           {breadcrumb != null && (
             <div className='mb-2 sm:mb-3'>{breadcrumb}</div>
           )}
-          <div className='flex flex-wrap items-end justify-between gap-x-4 gap-y-3'>
+          <div className='flex flex-wrap items-start justify-between gap-x-4 gap-y-3 sm:items-end'>
             <div className='min-w-0 flex-1'>
-              <h2 className='truncate text-3xl leading-none font-black tracking-normal sm:text-4xl'>
+              <h2 className='line-clamp-2 text-2xl leading-tight font-black tracking-normal break-words sm:truncate sm:text-4xl sm:leading-none'>
                 {title}
               </h2>
             </div>
             {actions != null && (
-              <div className='flex shrink-0 flex-wrap items-center justify-end gap-2'>
+              <div className='no-scrollbar -mx-1 flex w-[calc(100%+0.5rem)] shrink-0 items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0'>
                 {actions}
               </div>
             )}
           </div>
         </div>
 
-        <div className='min-h-0 flex-1 overflow-auto px-4 pt-1 pb-4 sm:px-6 sm:pt-1.5 sm:pb-6'>
+        <div className='min-h-0 flex-1 overflow-auto px-3 pt-1 pb-3 sm:px-6 sm:pt-1.5 sm:pb-6'>
           <div className='mx-auto w-full max-w-[1680px]'>{content}</div>
         </div>
 
         <div
           ref={setFooterContainer}
-          className='bg-background shrink-0 border-t px-3 py-2.5 empty:hidden sm:px-4 sm:py-3'
+          className='bg-background shrink-0 border-t px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] empty:hidden sm:px-4 sm:py-3'
         />
       </Main>
     </PageFooterProvider>
