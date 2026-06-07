@@ -236,13 +236,13 @@ export function SummaryCards() {
   return (
     <section className='bg-card/95 border-border/90 overflow-hidden rounded-lg border shadow-[0_18px_45px_rgb(25_21_14_/_0.08)]'>
       <div className='grid xl:grid-cols-[minmax(0,1fr)_23rem]'>
-        <div className='flex flex-col gap-4 p-5'>
+        <div className='flex flex-col gap-3 p-4 sm:gap-4 sm:p-5'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div className='flex flex-col gap-1'>
-              <h3 className='text-2xl font-black tracking-normal'>
+              <h3 className='text-xl font-black tracking-normal sm:text-2xl'>
                 {t('Usage at a glance')}
               </h3>
-              <p className='text-muted-foreground text-base'>
+              <p className='text-muted-foreground text-sm sm:text-base'>
                 {t('Monitor balance, usage, and request volume')}
               </p>
             </div>
@@ -251,7 +251,7 @@ export function SummaryCards() {
             {items.map((it) => (
               <StaggerItem
                 key={it.key}
-                className='bg-card border-border/90 rounded-lg border p-4 shadow-sm'
+                className='bg-card border-border/90 rounded-lg border p-3.5 shadow-sm sm:p-4'
               >
                 <StatCard
                   title={it.title}
@@ -268,7 +268,7 @@ export function SummaryCards() {
           </StaggerContainer>
         </div>
 
-        <div className='bg-primary text-primary-foreground border-primary flex flex-col justify-between gap-5 border-t p-5 xl:border-t-0 xl:border-l'>
+        <div className='bg-primary text-primary-foreground border-primary flex flex-col justify-between gap-4 border-t p-4 sm:gap-5 sm:p-5 xl:border-t-0 xl:border-l'>
           <div className='flex flex-col gap-3'>
             <div className='flex items-center justify-between'>
               <span className='text-primary-foreground/70 text-sm font-bold'>
@@ -285,11 +285,11 @@ export function SummaryCards() {
               </span>
             </div>
 
-            <div className='font-mono text-4xl font-black tracking-normal'>
+            <div className='font-mono text-3xl font-black tracking-normal break-words sm:text-4xl'>
               {formatQuota(remainQuota)}
             </div>
 
-            <div className='grid grid-cols-2 gap-2'>
+            <div className='grid grid-cols-1 gap-2 min-[380px]:grid-cols-2'>
               <div className='bg-primary-foreground/10 border-primary-foreground/10 rounded-lg border px-3 py-3'>
                 <div className='text-primary-foreground/70 flex items-center gap-1 text-xs leading-none font-bold'>
                   <Flame className='size-3 shrink-0' aria-hidden='true' />

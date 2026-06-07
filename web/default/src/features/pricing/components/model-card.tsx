@@ -94,7 +94,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       )}
     >
       {/* Header: icon + name + price + actions */}
-      <div className='flex items-start justify-between gap-2.5 sm:gap-3'>
+      <div className='flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between sm:gap-3'>
         <div className='flex min-w-0 items-start gap-2.5 sm:gap-3'>
           <div className='bg-muted/40 flex size-9 shrink-0 items-center justify-center rounded-lg sm:size-10 sm:rounded-xl'>
             {vendorIcon || (
@@ -201,7 +201,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           </div>
         </div>
 
-        <div className='flex shrink-0 items-center gap-1.5'>
+        <div className='flex shrink-0 items-center gap-1.5 self-start min-[420px]:self-auto'>
           <button
             type='button'
             onClick={props.onClick}
@@ -227,7 +227,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       </p>
 
       {/* Footer: left metadata and right performance summary share row alignment */}
-      <div className='mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1 sm:mt-4'>
+      <div className='mt-2 grid grid-cols-1 items-start gap-x-2 gap-y-1 min-[420px]:grid-cols-[minmax(0,1fr)_auto] sm:mt-4'>
         <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1'>
           {primaryGroup && (
             <span className='text-muted-foreground text-xs font-medium'>
@@ -246,7 +246,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             />
           )}
         </div>
-        <ModelPerfBadge perf={props.perf} className='row-span-2 self-start' />
+        <ModelPerfBadge
+          perf={props.perf}
+          className='self-start min-[420px]:row-span-2'
+        />
 
         <div className='flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-0.5 sm:gap-x-3 sm:gap-y-1'>
           {bottomTags.map((item) => (

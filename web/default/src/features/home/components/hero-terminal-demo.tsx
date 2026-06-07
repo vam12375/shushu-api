@@ -209,7 +209,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
     <div className={cn('mx-auto w-full max-w-2xl', props.className)}>
       <div
         className={cn(
-          'overflow-hidden rounded-2xl border backdrop-blur-sm',
+          'overflow-hidden rounded-xl border backdrop-blur-sm sm:rounded-2xl',
           'border-border/60 bg-white/95 shadow-[0_20px_50px_-25px_rgba(15,23,42,0.18)]',
           'dark:border-white/[0.06] dark:bg-[#0b0f17]/95 dark:shadow-[0_20px_60px_-25px_rgba(0,0,0,0.7)]'
         )}
@@ -217,7 +217,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
         {/* Tab strip */}
         <div
           className={cn(
-            'flex items-center gap-1 border-b px-2 sm:gap-1.5 sm:px-3',
+            'no-scrollbar flex items-center gap-1 overflow-x-auto border-b px-2 sm:gap-1.5 sm:px-3',
             'border-border/50 dark:border-white/[0.05]'
           )}
         >
@@ -229,7 +229,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
                 key={item.id}
                 onClick={() => handleSelect(index)}
                 className={cn(
-                  'relative -mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[11px] font-medium tracking-wide transition-colors sm:px-3 sm:text-xs',
+                  'relative -mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[11px] font-medium tracking-wide transition-colors sm:px-3 sm:text-xs',
                   isActive
                     ? `${tone.activeBorder} ${tone.activeText}`
                     : 'text-foreground/40 hover:text-foreground/70 border-transparent'
@@ -239,7 +239,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
               </button>
             )
           })}
-          <div className='ml-auto flex items-center gap-2 pr-2 sm:pr-3'>
+          <div className='ml-auto hidden shrink-0 items-center gap-2 pr-2 min-[420px]:flex sm:pr-3'>
             <span className='inline-block size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]' />
             <span className='text-foreground/40 font-mono text-[10px] tracking-wider uppercase'>
               200 ok
@@ -250,7 +250,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
         {/* Endpoint row */}
         <div
           className={cn(
-            'flex items-center gap-2.5 border-b px-5 py-3',
+            'flex items-center gap-2.5 border-b px-3 py-3 sm:px-5',
             'border-border/40 dark:border-white/[0.04]'
           )}
         >
@@ -273,7 +273,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
         </div>
 
         {/* Body — fixed rows so neither block shifts when switching demos */}
-        <div className='grid h-[400px] grid-rows-[235px_minmax(0,1fr)] font-mono text-[12.5px] leading-[1.55]'>
+        <div className='grid h-[360px] grid-rows-[220px_minmax(0,1fr)] font-mono text-[11px] leading-[1.55] sm:h-[400px] sm:grid-rows-[235px_minmax(0,1fr)] sm:text-[12.5px]'>
           {/* Request */}
           <RequestBlock demo={demo} transitioning={transitioning} />
 
@@ -284,11 +284,11 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
         {/* Footer metrics */}
         <div
           className={cn(
-            'flex items-center justify-between border-t px-5 py-2.5',
+            'flex items-center justify-between gap-3 border-t px-3 py-2.5 sm:px-5',
             'border-border/40 bg-muted/30 dark:border-white/[0.05] dark:bg-white/[0.02]'
           )}
         >
-          <div className='text-foreground/40 flex items-center gap-3 text-[10px] tabular-nums'>
+          <div className='text-foreground/40 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[10px] tabular-nums'>
             <span className='flex items-center gap-1'>
               <span className='font-mono'>{demo.latency}</span>
               <span className='tracking-wider uppercase'>ms</span>
@@ -306,7 +306,7 @@ export function HeroTerminalDemo(props: HeroTerminalDemoProps) {
               </span>
             </span>
           </div>
-          <span className='text-foreground/30 font-mono text-[10px] tracking-wider uppercase'>
+          <span className='text-foreground/30 hidden shrink-0 font-mono text-[10px] tracking-wider uppercase min-[420px]:inline'>
             stream · sse
           </span>
         </div>
@@ -319,7 +319,7 @@ function RequestBlock(props: { demo: ApiDemoConfig; transitioning: boolean }) {
   const { demo, transitioning } = props
 
   return (
-    <div className='relative px-5 py-4'>
+    <div className='relative px-3 py-3 sm:px-5 sm:py-4'>
       <SectionLabel>Request</SectionLabel>
       <div
         className={cn(
@@ -360,7 +360,7 @@ function ResponseBlock(props: { demo: ApiDemoConfig; transitioning: boolean }) {
   return (
     <div
       className={cn(
-        'relative border-t px-5 py-4',
+        'relative border-t px-3 py-3 sm:px-5 sm:py-4',
         'border-border/40 bg-muted/20 dark:border-white/[0.05] dark:bg-white/[0.015]'
       )}
     >

@@ -164,9 +164,9 @@ export function PricingToolbar(props: PricingToolbarProps) {
   )
 
   return (
-    <div className='rounded-xl border p-3'>
+    <div className='rounded-xl border p-2.5 sm:p-3'>
       <div className='flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
-        <div className='flex items-center gap-2'>
+        <div className='flex flex-wrap items-center gap-2'>
           <Button
             type='button'
             variant='outline'
@@ -196,7 +196,7 @@ export function PricingToolbar(props: PricingToolbarProps) {
           </div>
         </div>
 
-        <div className='flex flex-wrap items-center gap-2'>
+        <div className='flex flex-wrap items-center justify-end gap-2'>
           <div className='hidden items-center gap-2 sm:flex'>
             <SegmentedControl
               options={[
@@ -225,12 +225,14 @@ export function PricingToolbar(props: PricingToolbarProps) {
                   type='button'
                   variant='outline'
                   size='sm'
-                  className='h-8 gap-1.5 px-3 text-xs'
+                  className='h-8 max-w-[11rem] gap-1.5 px-3 text-xs'
                 />
               }
             >
               <ArrowUpDown className='size-3.5' />
-              <span>{sortLabels[props.sortBy as SortOption] || t('Sort')}</span>
+              <span className='truncate'>
+                {sortLabels[props.sortBy as SortOption] || t('Sort')}
+              </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end' className='w-44'>
               {Object.entries(sortLabels).map(([value, label]) => (
