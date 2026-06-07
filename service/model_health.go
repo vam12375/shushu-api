@@ -64,6 +64,13 @@ var (
 	modelHealthCache   = map[string]modelHealthCacheItem{}
 )
 
+// InvalidateModelHealthCache clears cached health snapshots after channel probe data changes.
+func InvalidateModelHealthCache() {
+	modelHealthCacheMu.Lock()
+	modelHealthCache = map[string]modelHealthCacheItem{}
+	modelHealthCacheMu.Unlock()
+}
+
 // modelHealthPeriodStart 将周期标识转换为起始时间戳（<=0 表示不限制）。
 func modelHealthPeriodStart(period string, now time.Time) (string, int64, error) {
 	switch period {

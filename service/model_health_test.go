@@ -124,6 +124,29 @@ func TestAccumulateSummary(t *testing.T) {
 	}
 }
 
+func TestInvalidateModelHealthCache(t *testing.T) {
+	modelHealthCacheMu.Lock()
+	modelHealthCache = map[string]modelHealthCacheItem{
+		"today": {
+			expiresAt: time.Now().Add(time.Minute),
+			data:      &ModelHealthResponse{Period: "today"},
+		},
+		"week": {
+			expiresAt: time.Now().Add(time.Minute),
+			data:      &ModelHealthResponse{Period: "week"},
+		},
+	}
+	modelHealthCacheMu.Unlock()
+
+	InvalidateModelHealthCache()
+
+	modelHealthCacheMu.Lock()
+	defer modelHealthCacheMu.Unlock()
+	if len(modelHealthCache) != 0 {
+		t.Fatalf("modelHealthCache length = %d, want 0", len(modelHealthCache))
+	}
+}
+
 func TestRoundFloat(t *testing.T) {
 	if got := roundFloat(0.123456, 4); got != 0.1235 {
 		t.Fatalf("roundFloat(0.123456,4) = %v, want 0.1235", got)

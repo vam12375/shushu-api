@@ -872,7 +872,8 @@ func TestChannel(c *gin.Context) {
 	}
 	tok := time.Now()
 	milliseconds := tok.Sub(tik).Milliseconds()
-	go channel.UpdateResponseTime(milliseconds)
+	channel.UpdateResponseTime(milliseconds)
+	service.InvalidateModelHealthCache()
 	consumedTime := float64(milliseconds) / 1000.0
 	if result.newAPIError != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -962,6 +963,7 @@ func testAllChannels(notify bool) error {
 			time.Sleep(common.RequestInterval)
 		}
 
+		service.InvalidateModelHealthCache()
 		if notify {
 			service.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", "所有通道测试已完成")
 		}

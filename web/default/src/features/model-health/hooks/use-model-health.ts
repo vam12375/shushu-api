@@ -24,6 +24,7 @@ export function useModelHealth(period: ModelHealthPeriod) {
   return useQuery({
     queryKey: ['model-health', period],
     queryFn: () => getModelHealth(period),
-    staleTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
+    staleTime: 30 * 1000,
   })
 }
