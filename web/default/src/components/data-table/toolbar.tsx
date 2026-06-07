@@ -251,7 +251,7 @@ export function DataTableToolbar<TData>(props: DataTableToolbarProps<TData>) {
           {props.customSearch !== undefined ? props.customSearch : searchInput}
           {props.additionalSearch}
           {filterChips}
-          <div className='ms-auto flex shrink-0 items-center gap-1.5 sm:gap-2'>
+          <div className='flex w-full shrink-0 flex-wrap items-center justify-end gap-1.5 sm:ms-auto sm:w-auto sm:gap-2'>
             {expandToggle}
           </div>
         </div>
@@ -264,7 +264,7 @@ export function DataTableToolbar<TData>(props: DataTableToolbarProps<TData>) {
 
         <div className='flex flex-wrap items-center gap-2 sm:gap-3'>
           {props.leftActions}
-          <div className='ms-auto flex shrink-0 items-center gap-1.5 sm:gap-2'>
+          <div className='flex w-full shrink-0 flex-wrap items-center justify-end gap-1.5 sm:ms-auto sm:w-auto sm:gap-2'>
             {props.preActions}
             {resetButton}
             {searchButton}
@@ -287,7 +287,7 @@ export function DataTableToolbar<TData>(props: DataTableToolbarProps<TData>) {
       {filterChips}
       {expanded && hasExpandable && props.expandable}
 
-      <div className='ms-auto flex shrink-0 items-center gap-1.5 sm:gap-2'>
+      <div className='flex w-full shrink-0 flex-wrap items-center justify-end gap-1.5 sm:ms-auto sm:w-auto sm:gap-2'>
         {props.preActions}
         {resetButton}
         {searchButton}

@@ -101,7 +101,7 @@ export function DataTablePagination<TData>({
             total: totalPages,
           })}
         </div>
-        <div className='flex items-center space-x-1.5 sm:space-x-2'>
+        <div className='flex items-center gap-1.5 sm:gap-2'>
           <Button
             variant='outline'
             className='size-8 p-0 @max-md/content:hidden'
@@ -122,22 +122,28 @@ export function DataTablePagination<TData>({
           </Button>
 
           {/* Page number buttons */}
-          {pageNumbers.map((pageNumber, index) => (
-            <div key={`${pageNumber}-${index}`} className='flex items-center'>
-              {pageNumber === '...' ? (
-                <span className='text-muted-foreground px-1 text-sm'>...</span>
-              ) : (
-                <Button
-                  variant={currentPage === pageNumber ? 'default' : 'outline'}
-                  className='h-8 min-w-8 px-2'
-                  onClick={() => table.setPageIndex((pageNumber as number) - 1)}
-                >
-                  <span className='sr-only'>Go to page {pageNumber}</span>
-                  {pageNumber}
-                </Button>
-              )}
-            </div>
-          ))}
+          <div className='hidden items-center gap-1.5 @md/content:flex sm:gap-2'>
+            {pageNumbers.map((pageNumber, index) => (
+              <div key={`${pageNumber}-${index}`} className='flex items-center'>
+                {pageNumber === '...' ? (
+                  <span className='text-muted-foreground px-1 text-sm'>
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    variant={currentPage === pageNumber ? 'default' : 'outline'}
+                    className='h-8 min-w-8 px-2'
+                    onClick={() =>
+                      table.setPageIndex((pageNumber as number) - 1)
+                    }
+                  >
+                    <span className='sr-only'>Go to page {pageNumber}</span>
+                    {pageNumber}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
 
           <Button
             variant='outline'

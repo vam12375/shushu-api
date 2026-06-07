@@ -156,7 +156,7 @@ function CompactRow<TData>({ row }: { row: Row<TData> }) {
 
       {/* Row 2: Key fields wrap into compact columns instead of squeezing */}
       {fieldCells.length > 0 && (
-        <div className='mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5'>
+        <div className='mt-1.5 grid grid-cols-1 gap-x-3 gap-y-1.5 min-[380px]:grid-cols-2'>
           {fieldCells.map((cell) => {
             const label = getCellLabel(cell)
             return (
@@ -166,7 +166,7 @@ function CompactRow<TData>({ row }: { row: Row<TData> }) {
                     {label}
                   </div>
                 )}
-                <div className='min-w-0 overflow-hidden text-xs'>
+                <div className='min-w-0 overflow-hidden text-xs break-words'>
                   {renderCellContent(cell) ?? '-'}
                 </div>
               </div>
@@ -221,7 +221,7 @@ function FallbackRow<TData>({ row }: { row: Row<TData> }) {
             <span className='text-muted-foreground shrink-0 text-[10px] font-medium select-none'>
               {label}
             </span>
-            <div className='flex min-w-0 flex-1 items-center justify-end overflow-hidden text-xs'>
+            <div className='flex min-w-0 flex-1 items-center justify-end overflow-hidden text-right text-xs break-words'>
               {content ?? '-'}
             </div>
           </div>
