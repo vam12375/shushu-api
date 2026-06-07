@@ -1,0 +1,8 @@
+{
+  "Real-time availability of each model, derived from channel health checks, with success rate over the selected period.": "Real-time availability of each model, derived from channel health checks, with success rate over the selected period.",
+  "Unable to load model health data": "Unable to load model health data",
+  "Unable to load model health": "Unable to load model health",
+  "Public model availability and success-rate page.": "Public model availability and success-rate page.",
+  "Require login to view model health": "Require login to view model health",
+  "Visitors must authenticate before accessing the model health page.": "Visitors must authenticate before accessing the model health page."
+}
