@@ -53,6 +53,8 @@ const headerNavSchema = z.object({
   pricingRequireAuth: z.boolean(),
   rankingsEnabled: z.boolean(),
   rankingsRequireAuth: z.boolean(),
+  modelHealthEnabled: z.boolean(),
+  modelHealthRequireAuth: z.boolean(),
   docs: z.boolean(),
   about: z.boolean(),
 })
@@ -87,6 +89,14 @@ const toFormValues = (config: HeaderNavModulesConfig): HeaderNavFormValues => ({
     config.rankings?.requireAuth === undefined
       ? HEADER_NAV_DEFAULT.rankings.requireAuth
       : Boolean(config.rankings.requireAuth),
+  modelHealthEnabled:
+    config.modelHealth?.enabled === undefined
+      ? HEADER_NAV_DEFAULT.modelHealth.enabled
+      : Boolean(config.modelHealth.enabled),
+  modelHealthRequireAuth:
+    config.modelHealth?.requireAuth === undefined
+      ? HEADER_NAV_DEFAULT.modelHealth.requireAuth
+      : Boolean(config.modelHealth.requireAuth),
   docs:
     config.docs === undefined ? HEADER_NAV_DEFAULT.docs : Boolean(config.docs),
   about:
@@ -128,6 +138,11 @@ export function HeaderNavigationSection({
         ...(config.rankings ?? HEADER_NAV_DEFAULT.rankings),
         enabled: values.rankingsEnabled,
         requireAuth: values.rankingsRequireAuth,
+      },
+      modelHealth: {
+        ...(config.modelHealth ?? HEADER_NAV_DEFAULT.modelHealth),
+        enabled: values.modelHealthEnabled,
+        requireAuth: values.modelHealthRequireAuth,
       },
     }
 
@@ -176,7 +191,10 @@ export function HeaderNavigationSection({
   const accessModules: Array<{
     enabledKey: keyof HeaderNavFormValues
     requireAuthKey: keyof HeaderNavFormValues
-    requireAuthDependsOn: 'pricingEnabled' | 'rankingsEnabled'
+    requireAuthDependsOn:
+      | 'pricingEnabled'
+      | 'rankingsEnabled'
+      | 'modelHealthEnabled'
     title: string
     description: string
     requireAuthTitle: string
@@ -202,6 +220,17 @@ export function HeaderNavigationSection({
       requireAuthTitle: t('Require login to view rankings'),
       requireAuthDescription: t(
         'Visitors must authenticate before accessing the rankings page.'
+      ),
+    },
+    {
+      enabledKey: 'modelHealthEnabled',
+      requireAuthKey: 'modelHealthRequireAuth',
+      requireAuthDependsOn: 'modelHealthEnabled',
+      title: t('Model Health'),
+      description: t('Public model availability and success-rate page.'),
+      requireAuthTitle: t('Require login to view model health'),
+      requireAuthDescription: t(
+        'Visitors must authenticate before accessing the model health page.'
       ),
     },
   ]

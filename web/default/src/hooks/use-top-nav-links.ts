@@ -85,6 +85,17 @@ export function useTopNavLinks(): TopNavLink[] {
     links.push({ title: t('Rankings'), href: '/rankings', requiresAuth })
   }
 
+  // Model Health (inserted between Rankings and Docs)
+  const modelHealth = modules?.modelHealth
+  if (modelHealth && typeof modelHealth === 'object' && modelHealth.enabled) {
+    const requiresAuth = modelHealth.requireAuth && !isAuthed
+    links.push({
+      title: t('Model Health'),
+      href: '/model-health',
+      requiresAuth,
+    })
+  }
+
   // Docs (supports external links)
   if (modules?.docs !== false) {
     if (docsLink) {
