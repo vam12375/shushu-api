@@ -91,6 +91,10 @@ interface StatItem {
   end: number
   suffix: string
   label: string
+  emoji: string
+  color: string
+  bgColor: string
+  borderColor: string
   decimals?: number
 }
 
@@ -98,31 +102,99 @@ export function Stats(_props: StatsProps) {
   const { t } = useTranslation()
 
   const stats: StatItem[] = [
-    { end: 50, suffix: '+', label: t('upstream services integrated') },
-    { end: 100, suffix: '+', label: t('model billing support') },
-    { end: 50, suffix: '+', label: t('compatible API routes') },
-    { end: 10, suffix: '+', label: t('scheduling controls') },
+    {
+      end: 50,
+      suffix: '+',
+      label: t('upstream_services_integrated'),
+      emoji: '🔌',
+      color: 'text-red-700 dark:text-red-300',
+      bgColor: 'bg-red-100 dark:bg-red-950',
+      borderColor: 'border-red-500',
+    },
+    {
+      end: 100,
+      suffix: '+',
+      label: t('model_billing_support'),
+      emoji: '💰',
+      color: 'text-cyan-700 dark:text-cyan-300',
+      bgColor: 'bg-cyan-100 dark:bg-cyan-950',
+      borderColor: 'border-cyan-500',
+    },
+    {
+      end: 50,
+      suffix: '+',
+      label: t('compatible_api_routes'),
+      emoji: '🛣️',
+      color: 'text-yellow-700 dark:text-yellow-300',
+      bgColor: 'bg-yellow-100 dark:bg-yellow-950',
+      borderColor: 'border-yellow-500',
+    },
+    {
+      end: 10,
+      suffix: '+',
+      label: t('scheduling_controls'),
+      emoji: '⚙️',
+      color: 'text-green-700 dark:text-green-300',
+      bgColor: 'bg-green-100 dark:bg-green-950',
+      borderColor: 'border-green-500',
+    },
   ]
 
   return (
-    <div className='border-border/40 bg-muted/10 relative z-10 border-y'>
-      <div className='mx-auto max-w-6xl px-6 py-10 md:py-12'>
-        <div className='grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12'>
-          {stats.map((s) => (
+    <section className='border-border/40 relative z-10 border-y py-16 md:py-20'>
+      <div className='mx-auto max-w-6xl px-6'>
+        {/* 标题 */}
+        <div className='mb-10 text-center'>
+          <h2 className='text-2xl font-black tracking-tight md:text-3xl'>
+            {t('stats_title')} 📊
+          </h2>
+          <p className='text-muted-foreground mt-2 text-sm md:text-base'>
+            {t('stats_subtitle')}
+          </p>
+        </div>
+
+        {/* 2x2 Bento Grid */}
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6'>
+          {stats.map((s, index) => (
             <div
               key={s.label}
-              className='flex flex-col items-center text-center'
+              className={`group relative overflow-hidden rounded-2xl border-2 p-8 transition-all duration-300 hover:scale-105 hover:rotate-1 ${s.bgColor} ${s.borderColor} shadow-[4px_4px_0_var(--foreground)] hover:shadow-[6px_6px_0_var(--foreground)]`}
+              style={{
+                animationDelay: `${index * 100}ms`,
+              }}
             >
-              <span className='text-2xl font-bold tracking-tight md:text-3xl'>
-                <Counter end={s.end} suffix={s.suffix} decimals={s.decimals} />
-              </span>
-              <span className='text-muted-foreground mt-1.5 text-xs'>
-                {s.label}
-              </span>
+              {/* 装饰性 emoji - 右上角大号半透明 */}
+              <div className='absolute -top-4 -right-4 text-8xl opacity-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12'>
+                {s.emoji}
+              </div>
+
+              {/* 内容 */}
+              <div className='relative z-10 flex flex-col'>
+                {/* 数字 */}
+                <div className={`mb-2 text-5xl font-black ${s.color}`}>
+                  <Counter end={s.end} suffix={s.suffix} decimals={s.decimals} />
+                </div>
+
+                {/* 标签 */}
+                <div className={`text-sm font-bold uppercase tracking-wide ${s.color}`}>
+                  {s.emoji} {s.label}
+                </div>
+
+                {/* 进度条装饰 */}
+                <div className='mt-4 h-2 overflow-hidden rounded-full bg-foreground/10'>
+                  <div
+                    className={`h-full rounded-full ${s.borderColor.replace('border-', 'bg-')} transition-all duration-1000 ease-out`}
+                    style={{
+                      width: `${(s.end / 100) * 100}%`,
+                      maxWidth: '100%',
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }
