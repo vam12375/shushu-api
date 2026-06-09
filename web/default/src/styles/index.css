@@ -392,6 +392,31 @@ For commercial licensing, please contact support@quantumnous.com
     will-change: transform;
   }
 
+  /* Rat Charity Animations */
+  @keyframes float-rat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(3deg); }
+  }
+  .animate-float-rat {
+    animation: float-rat 6s ease-in-out infinite;
+  }
+
+  @keyframes pulse-width {
+    0%, 100% { width: 75%; }
+    50% { width: 85%; }
+  }
+  .animate-pulse-width {
+    animation: pulse-width 3s ease-in-out infinite;
+  }
+
+  @keyframes scroll-x {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .animate-scroll-x {
+    animation: scroll-x 40s linear infinite;
+  }
+
   /* Pause animation on hover */
   .scroll-container:hover .animate-scroll-up,
   .scroll-container:hover .animate-scroll-down {

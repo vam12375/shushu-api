@@ -20,25 +20,9 @@ For commercial licensing, please contact support@quantumnous.com
 
 @theme inline {
   --font-sans: 'Public Sans', sans-serif;
-  /* Editorial serif token — the body face used by the `serif` font axis
-   * and by presets that opt in (currently Anthropic). Lora carries only
-   * Latin glyphs, so the stack walks through CJK serifs (Noto / Source Han
-   * / Songti / SimSun) before the generic `serif` fallback. Without these
-   * explicit CJK fonts the browser's generic-serif pick on Windows is
-   * non-deterministic at small sizes and often appears sans-like. */
-  --font-serif:
-    'Lora Variable', 'Lora', 'Source Serif Pro', 'Source Serif 4',
-    'Noto Serif SC', 'Noto Serif TC', 'Noto Serif JP', 'Noto Serif KR',
-    'Source Han Serif SC', 'Source Han Serif TC', 'Source Han Serif',
-    'Songti SC', 'STSong', 'STSongti-SC-Regular', 'PingFang SC', 'SimSun',
-    'NSimSun', '宋体', 'FangSong', '仿宋', 'KaiTi', '楷体', Georgia,
-    'Times New Roman', Cambria, 'Liberation Serif', serif;
-  --font-inter:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  --font-manrope:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-hand: 'Gaegu', cursive;
+  --font-outfit: 'Outfit', sans-serif;
+  --font-mono-rat: 'JetBrains Mono', monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -81,13 +65,21 @@ For commercial licensing, please contact support@quantumnous.com
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-rat-brown: #4a3521;
+  --color-rat-yellow: #ffd23f;
+  --color-rat-orange: #ff9f1c;
+  --color-rat-cream: #fffefa;
+  --color-rat-emerald: #2ec4b6;
+  --color-rat-warm: #fffcf7;
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-4xl: 2.5rem;
+  --radius-5xl: 3rem;
 }
 
 :root {
