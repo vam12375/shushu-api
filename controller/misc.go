@@ -48,10 +48,12 @@ func GetStatus(c *gin.Context) {
 
 	passkeySetting := system_setting.GetPasskeySettings()
 	legalSetting := system_setting.GetLegalSettings()
+	httpStats := middleware.GetStats()
 
 	data := gin.H{
 		"version":                     common.Version,
 		"start_time":                  common.StartTime,
+		"http_stats":                  httpStats,
 		"email_verification":          common.EmailVerificationEnabled,
 		"github_oauth":                common.GitHubOAuthEnabled,
 		"github_client_id":            common.GitHubClientId,
