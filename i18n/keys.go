@@ -330,3 +330,13 @@ const (
 	MsgCustomOAuthBindingNotFound   = "custom_oauth.binding_not_found"
 	MsgCustomOAuthProviderIdInvalid = "custom_oauth.provider_id_field_invalid"
 )
+
+// IP Guard related messages
+const (
+	MsgIPGuardTokenDisabled  = "ip_guard.token_disabled"
+	MsgIPGuardUserBanned     = "ip_guard.user_banned"
+	MsgIPGuardStatusNormal   = "ip_guard.status_normal"
+	MsgIPGuardStatusWarning  = "ip_guard.status_warning"
+	MsgIPGuardStatusDanger   = "ip_guard.status_danger"
+	MsgIPGuardGetStatusError = "ip_guard.get_status_error"
+)

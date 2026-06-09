@@ -278,3 +278,11 @@ custom_oauth.name_empty: "提供商名称不能为空"
 custom_oauth.has_bindings: "无法删除已有用户绑定的提供商"
 custom_oauth.binding_not_found: "OAuth 绑定不存在"
 custom_oauth.provider_id_field_invalid: "无法从提供商响应中提取用户 ID"
+
+# IP Guard messages
+ip_guard.token_disabled: "检测到您的 API Key 在短时间内被多个不同 IP 使用，出于安全已禁用该令牌。请在控制台删除此令牌并重新创建。如有疑问请联系站长。"
+ip_guard.user_banned: "检测到您的 API Key 在多个 IP 异常使用，已达封禁阈值，账号已被封禁。如有疑问请联系站长。"
+ip_guard.status_normal: "正常"
+ip_guard.status_warning: "警告：接近阈值"
+ip_guard.status_danger: "危险：已触发禁用"
+ip_guard.get_status_error: "获取 IP 守卫状态失败"

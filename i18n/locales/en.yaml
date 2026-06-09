@@ -277,3 +277,11 @@ custom_oauth.name_empty: "Provider name cannot be empty"
 custom_oauth.has_bindings: "Cannot delete provider with existing user bindings"
 custom_oauth.binding_not_found: "OAuth binding not found"
 custom_oauth.provider_id_field_invalid: "Could not extract user ID from provider response"
+
+# IP Guard messages
+ip_guard.token_disabled: "Your API Key has been detected being used from multiple different IPs in a short period. For security reasons, this token has been disabled. Please delete this token in the console and create a new one. Contact the administrator if you have any questions."
+ip_guard.user_banned: "Your API Key has been detected being used abnormally from multiple IPs, reaching the ban threshold. Your account has been banned. Contact the administrator if you have any questions."
+ip_guard.status_normal: "Normal"
+ip_guard.status_warning: "Warning: Approaching threshold"
+ip_guard.status_danger: "Danger: Token disabled"
+ip_guard.get_status_error: "Failed to get IP guard status"
