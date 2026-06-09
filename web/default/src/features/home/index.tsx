@@ -20,10 +20,10 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
+import { Footer } from '@/components/layout/components/footer'
 import {
   RatBackground,
   RatDashboard,
-  RatFooter,
   RatHero,
   RatTicker,
 } from './components'
@@ -75,7 +75,13 @@ export function Home() {
           <RatHero isAuthenticated={isAuthenticated} />
           <RatDashboard />
           <RatTicker />
-          <RatFooter />
+          {/* 鼠鼠语录 */}
+          <div className='max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 text-center'>
+            <div className='font-hand text-3xl sm:text-4xl lg:text-5xl opacity-30 text-rat-brown'>
+              {t('"鼠鼠我呀，最爱 API 啦捏~"')}
+            </div>
+          </div>
+          <Footer />
         </div>
       </div>
     </PublicLayout>
