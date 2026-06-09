@@ -51,6 +51,17 @@ type IPGuardResult struct {
 	DistinctIPs    int  // 当前窗口内的不同 IP 数（用于日志）
 }
 
+// IPGuardStatus IP守卫状态，供前端展示用户的IP使用情况。
+type IPGuardStatus struct {
+	CurrentIPs        int    `json:"current_ips"`          // 当前窗口内的不同 IP 数
+	Threshold         int    `json:"threshold"`            // 触发禁用的 IP 阈值
+	StrikeCount       int    `json:"strike_count"`         // 当前 strike 累计次数
+	StrikeThreshold   int    `json:"strike_threshold"`     // 触发封禁的 strike 阈值
+	Status            string `json:"status"`               // normal/warning/danger
+	WindowMinutes     int    `json:"window_minutes"`       // IP 滑动窗口（分钟）
+	StrikeWindowHours int    `json:"strike_window_hours"`  // strike 滑动窗口（小时）
+}
+
 // 进程内存兜底所用的结构与锁
 var (
 	ipGuardMu      sync.Mutex
@@ -191,4 +202,109 @@ func incrStrike(userId int, now int64) int {
 	kept = append(kept, now)
 	memStrikeTimes[userId] = kept
 	return len(kept)
+}
+
+// GetIPGuardStatus 获取指定用户的 IP 守卫状态，用于前端展示。
+// 返回当前窗口内的 IP 数、阈值、strike 计数及状态等级。
+func GetIPGuardStatus(userId int) (*IPGuardStatus, error) {
+	if !ipGuardCfg.Enabled || userId <= 0 {
+		return nil, fmt.Errorf("IP守卫未启用或用户ID无效")
+	}
+
+	now := common.GetTimestamp()
+
+	// 获取当前窗口内的 IP 数
+	var currentIPs int
+	if common.RedisEnabled {
+		currentIPs = getIPCountRedis(userId, now)
+	} else {
+		currentIPs = getIPCountMemory(userId, now)
+	}
+
+	// 获取当前 strike 计数
+	strikeCount := getStrikeCount(userId, now)
+
+	// 计算状态等级
+	status := "normal"
+	if currentIPs >= ipGuardCfg.DistinctIPLimit {
+		status = "danger"
+	} else if currentIPs >= ipGuardCfg.DistinctIPLimit-1 {
+		status = "warning"
+	}
+
+	return &IPGuardStatus{
+		CurrentIPs:        currentIPs,
+		Threshold:         ipGuardCfg.DistinctIPLimit,
+		StrikeCount:       strikeCount,
+		StrikeThreshold:   ipGuardCfg.StrikeLimit,
+		Status:            status,
+		WindowMinutes:     int(ipGuardCfg.WindowSeconds / 60),
+		StrikeWindowHours: int(ipGuardCfg.StrikeWindowSec / 3600),
+	}, nil
+}
+
+// getIPCountRedis 获取 Redis 中用户当前窗口内的 IP 数。
+func getIPCountRedis(userId int, now int64) int {
+	ctx := context.Background()
+	key := ipWindowKey(userId)
+	cutoff := now - ipGuardCfg.WindowSeconds
+
+	// 清理过期 IP 并获取当前数量
+	pipe := common.RDB.Pipeline()
+	pipe.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", cutoff))
+	cardCmd := pipe.ZCard(ctx, key)
+	if _, err := pipe.Exec(ctx); err != nil {
+		common.SysError("获取IP守卫状态失败(Redis): " + err.Error())
+		return 0
+	}
+	return int(cardCmd.Val())
+}
+
+// getIPCountMemory 获取内存中用户当前窗口内的 IP 数。
+func getIPCountMemory(userId int, now int64) int {
+	cutoff := now - ipGuardCfg.WindowSeconds
+	ipGuardMu.Lock()
+	defer ipGuardMu.Unlock()
+
+	window := memIPWindows[userId]
+	if window == nil {
+		return 0
+	}
+
+	// 清理过期 IP
+	for ip, ts := range window {
+		if ts < cutoff {
+			delete(window, ip)
+		}
+	}
+	return len(window)
+}
+
+// getStrikeCount 获取用户当前 strike 窗口内的累计次数。
+func getStrikeCount(userId int, now int64) int {
+	if common.RedisEnabled {
+		ctx := context.Background()
+		key := strikeCountKey(userId)
+		val, err := common.RDB.Get(ctx, key).Int()
+		if err != nil {
+			if err == redis.Nil {
+				return 0
+			}
+			common.SysError("获取strike计数失败(Redis): " + err.Error())
+			return 0
+		}
+		return val
+	}
+
+	cutoff := now - ipGuardCfg.StrikeWindowSec
+	ipGuardMu.Lock()
+	defer ipGuardMu.Unlock()
+	times := memStrikeTimes[userId]
+	count := 0
+	for _, ts := range times {
+		if ts >= cutoff {
+			count++
+		}
+	}
+	return count
 }

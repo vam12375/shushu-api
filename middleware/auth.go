@@ -382,12 +382,12 @@ func TokenAuth() func(c *gin.Context) {
 		guardResult := service.CheckIPGuard(token.UserId, c.ClientIP())
 		if guardResult.TriggerBan {
 			abortWithOpenAiMessage(c, http.StatusForbidden,
-				"检测到您的 APIKEY 在多个 IP 异常使用，已达封禁阈值，账号已被封禁。如有疑问请联系站长。")
+				common.TranslateMessage(c, i18n.MsgIPGuardUserBanned))
 			return
 		}
 		if guardResult.TriggerDisable {
 			abortWithOpenAiMessage(c, http.StatusForbidden,
-				"检测到您的 APIKEY 在短时间内被多个不同 IP 使用，出于安全已禁用该令牌。请在控制台删除此 API 并重新创建。")
+				common.TranslateMessage(c, i18n.MsgIPGuardTokenDisabled))
 			return
 		}
 

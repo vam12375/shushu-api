@@ -1149,6 +1149,28 @@ type UpdateUserSettingRequest struct {
 	RecordIpLog                      bool    `json:"record_ip_log"`
 }
 
+// GetIPGuardStatus 获取当前用户的 IP 守卫状态。
+// GET /api/user/ip-guard-status
+func GetIPGuardStatus(c *gin.Context) {
+	userId := c.GetInt("id")
+	if userId == 0 {
+		common.ApiErrorI18n(c, i18n.MsgAuthUserIdNotProvided)
+		return
+	}
+
+	status, err := service.GetIPGuardStatus(userId)
+	if err != nil {
+		common.SysError("获取 IP 守卫状态失败: " + err.Error())
+		common.ApiErrorI18n(c, i18n.MsgIPGuardGetStatusError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    status,
+	})
+}
+
 func UpdateUserSetting(c *gin.Context) {
 	var req UpdateUserSettingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
