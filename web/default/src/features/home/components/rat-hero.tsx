@@ -10,11 +10,11 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
   // 处理"领一份奶酪"按钮点击
   const handleGetCheese = () => {
     if (isAuthenticated) {
-      // 已登录，跳转到新版控制台
-      navigate({ to: '/dashboard' })
+      // 已登录，跳转到新版控制台概览
+      navigate({ to: '/dashboard/$section', params: { section: 'overview' } })
     } else {
-      // 未登录，跳转到登录页面，并在登录后进入控制台
-      navigate({ to: '/sign-in', search: { redirect: '/dashboard' } })
+      // 未登录，跳转到登录页面，并在登录后进入控制台概览
+      navigate({ to: '/sign-in', search: { redirect: '/dashboard/overview' } })
     }
   }
 

@@ -42,8 +42,6 @@ import { defaultTopNavLinks } from '../config/top-nav.config'
 import type { TopNavLink } from '../types'
 import { HeaderLogo } from './header-logo'
 
-const AUTH_PROMPT_SECONDS = 5
-
 type AuthPromptTarget = {
   title: string
   href: string
@@ -84,8 +82,6 @@ export function PublicHeader(props: PublicHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [authPromptTarget, setAuthPromptTarget] =
     useState<AuthPromptTarget | null>(null)
-  const [authPromptSecondsLeft, setAuthPromptSecondsLeft] =
-    useState(AUTH_PROMPT_SECONDS)
   const { auth } = useAuthStore()
   const {
     systemName,
@@ -117,28 +113,8 @@ export function PublicHeader(props: PublicHeaderProps) {
     }
   }, [mobileOpen])
 
-  useEffect(() => {
-    if (!authPromptTarget) return
-
-    const intervalId = window.setInterval(() => {
-      setAuthPromptSecondsLeft((seconds) => Math.max(seconds - 1, 0))
-    }, 1000)
-
-    const timeoutId = window.setTimeout(() => {
-      const redirect = authPromptTarget.href
-      setAuthPromptTarget(null)
-      navigate({ to: '/sign-in', search: { redirect } })
-    }, AUTH_PROMPT_SECONDS * 1000)
-
-    return () => {
-      window.clearInterval(intervalId)
-      window.clearTimeout(timeoutId)
-    }
-  }, [authPromptTarget, navigate])
-
   const closeAuthPrompt = useCallback(() => {
     setAuthPromptTarget(null)
-    setAuthPromptSecondsLeft(AUTH_PROMPT_SECONDS)
   }, [])
 
   const navigateToSignIn = useCallback(() => {
@@ -163,7 +139,6 @@ export function PublicHeader(props: PublicHeaderProps) {
         if (closeMobile) {
           setMobileOpen(false)
         }
-        setAuthPromptSecondsLeft(AUTH_PROMPT_SECONDS)
         setAuthPromptTarget({
           title: t(link.title),
           href: link.href,
@@ -437,11 +412,6 @@ export function PublicHeader(props: PublicHeaderProps) {
               })}
             </DialogDescription>
           </DialogHeader>
-          <div className='bg-muted/40 text-muted-foreground rounded-lg px-3 py-2 text-sm'>
-            {t('Redirecting to sign in in {{seconds}} seconds.', {
-              seconds: authPromptSecondsLeft,
-            })}
-          </div>
           <DialogFooter>
             <Button variant='outline' onClick={closeAuthPrompt}>
               {t('Cancel')}

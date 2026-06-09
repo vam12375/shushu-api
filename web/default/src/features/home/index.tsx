@@ -16,11 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
+import { getSelf } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 import {
   RatBackground,
   RatDashboard,
@@ -32,8 +34,47 @@ import { useHomePageContent } from './hooks'
 export function Home() {
   const { t } = useTranslation()
   const { auth } = useAuthStore()
-  const isAuthenticated = !!auth.user
+  const [sessionChecked, setSessionChecked] = useState(false)
+  const [sessionValid, setSessionValid] = useState(false)
   const { content, isLoaded, isUrl } = useHomePageContent()
+
+  useEffect(() => {
+    let active = true
+
+    if (!auth.user) {
+      setSessionValid(false)
+      setSessionChecked(true)
+      return () => {
+        active = false
+      }
+    }
+
+    setSessionChecked(false)
+    setSessionValid(false)
+
+    ;(async () => {
+      try {
+        const res = await getSelf()
+        if (active && res?.success && res.data) {
+          setSessionValid(true)
+        }
+      } catch {
+        if (active) {
+          setSessionValid(false)
+        }
+      } finally {
+        if (active) {
+          setSessionChecked(true)
+        }
+      }
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [auth.user])
+
+  const isAuthenticated = sessionChecked && sessionValid
 
   if (!isLoaded) {
     return (
@@ -73,7 +114,7 @@ export function Home() {
         <RatBackground />
         <div className='relative z-10'>
           <RatHero isAuthenticated={isAuthenticated} />
-          <RatDashboard />
+          {isAuthenticated && <RatDashboard />}
           <RatTicker />
           {/* 鼠鼠语录 */}
           <div className='max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 text-center'>
