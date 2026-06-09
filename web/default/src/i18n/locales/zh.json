@@ -4653,6 +4653,26 @@
     "总请求数": "总请求数",
     "暂无模型数据": "暂无模型数据",
     "当前": "当前",
-    "只鼠鼠在线": "只鼠鼠在线"
+    "只鼠鼠在线": "只鼠鼠在线",
+    "IP Guard Status": "IP 守卫状态",
+    "IP Usage Monitor": "IP 使用监控",
+    "Current IPs": "当前 IP 数",
+    "Threshold": "阈值",
+    "Strike Count": "触发次数",
+    "Status": "状态",
+    "Normal": "正常",
+    "Warning": "警告",
+    "Danger": "危险",
+    "IP Guard": "IP 守卫",
+    "Your API Key usage from multiple IPs is being monitored.": "您的 API Key 多 IP 使用情况正在被监控。",
+    "When {{current}} different IPs are detected within {{window}} minutes, your tokens will be automatically disabled.": "当在 {{window}} 分钟内检测到 {{current}} 个不同 IP 时，您的令牌将被自动禁用。",
+    "Current Status": "当前状态",
+    "{{current}} IPs / {{threshold}} threshold": "{{current}} 个 IP / 阈值 {{threshold}}",
+    "Strike History": "触发历史",
+    "{{count}} strikes in {{hours}} hours": "{{hours}} 小时内 {{count}} 次触发",
+    "Reaching {{threshold}} strikes will result in account ban.": "达到 {{threshold}} 次触发将导致账号封禁。",
+    "Your tokens are currently disabled. Please delete and recreate them.": "您的令牌已被禁用，请删除后重新创建。",
+    "IP Guard Protection": "IP 守卫保护",
+    "Failed to load IP guard status": "加载 IP 守卫状态失败"
   }
 }

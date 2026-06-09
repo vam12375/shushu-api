@@ -4653,6 +4653,26 @@
     "总请求数": "Total Requests",
     "暂无模型数据": "No model data available",
     "当前": "Currently",
-    "只鼠鼠在线": "rats online"
+    "只鼠鼠在线": "rats online",
+    "IP Guard Status": "IP Guard Status",
+    "IP Usage Monitor": "IP Usage Monitor",
+    "Current IPs": "Current IPs",
+    "Threshold": "Threshold",
+    "Strike Count": "Strike Count",
+    "Status": "Status",
+    "Normal": "Normal",
+    "Warning": "Warning",
+    "Danger": "Danger",
+    "IP Guard": "IP Guard",
+    "Your API Key usage from multiple IPs is being monitored.": "Your API Key usage from multiple IPs is being monitored.",
+    "When {{current}} different IPs are detected within {{window}} minutes, your tokens will be automatically disabled.": "When {{current}} different IPs are detected within {{window}} minutes, your tokens will be automatically disabled.",
+    "Current Status": "Current Status",
+    "{{current}} IPs / {{threshold}} threshold": "{{current}} IPs / {{threshold}} threshold",
+    "Strike History": "Strike History",
+    "{{count}} strikes in {{hours}} hours": "{{count}} strikes in {{hours}} hours",
+    "Reaching {{threshold}} strikes will result in account ban.": "Reaching {{threshold}} strikes will result in account ban.",
+    "Your tokens are currently disabled. Please delete and recreate them.": "Your tokens are currently disabled. Please delete and recreate them.",
+    "IP Guard Protection": "IP Guard Protection",
+    "Failed to load IP guard status": "Failed to load IP guard status"
   }
 }
