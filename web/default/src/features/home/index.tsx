@@ -20,8 +20,13 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
-import { Footer } from '@/components/layout/components/footer'
-import { CTA, Features, Hero, HowItWorks, Stats } from './components'
+import {
+  RatBackground,
+  RatDashboard,
+  RatFooter,
+  RatHero,
+  RatTicker,
+} from './components'
 import { useHomePageContent } from './hooks'
 
 export function Home() {
@@ -33,14 +38,16 @@ export function Home() {
   if (!isLoaded) {
     return (
       <PublicLayout showMainContainer={false}>
-        <main className='flex min-h-screen items-center justify-center'>
-          <div className='text-muted-foreground'>{t('Loading...')}</div>
+        <main className='flex min-h-screen items-center justify-center font-outfit bg-rat-warm'>
+          <div className='text-rat-brown/60 font-bold animate-pulse'>
+            {t('Loading...')}
+          </div>
         </main>
       </PublicLayout>
     )
   }
 
-  if (content) {
+  if (content && content.trim() !== '') {
     return (
       <PublicLayout showMainContainer={false}>
         <main className='overflow-x-hidden'>
@@ -62,12 +69,15 @@ export function Home() {
 
   return (
     <PublicLayout showMainContainer={false}>
-      <Hero isAuthenticated={isAuthenticated} />
-      <Stats />
-      <Features />
-      <HowItWorks />
-      <CTA isAuthenticated={isAuthenticated} />
-      <Footer />
+      <div className='relative font-outfit text-rat-brown bg-rat-warm selection:bg-rat-yellow/30'>
+        <RatBackground />
+        <div className='relative z-10'>
+          <RatHero isAuthenticated={isAuthenticated} />
+          <RatDashboard />
+          <RatTicker />
+          <RatFooter />
+        </div>
+      </div>
     </PublicLayout>
   )
 }
