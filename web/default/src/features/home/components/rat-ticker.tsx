@@ -1,7 +1,4 @@
-import { useTranslation } from 'react-i18next'
-
 export function RatTicker() {
-  const { t } = useTranslation()
   const providers = [
     'OPENAI',
     'ANTHROPIC',

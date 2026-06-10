@@ -46,7 +46,9 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
         {/* 描述文本 - 居中 */}
         <p className='text-rat-brown/60 mx-auto max-w-3xl text-xl leading-relaxed font-medium sm:text-2xl'>
           {t('这里是')}{' '}
-          <span className='rounded bg-yellow-200 px-2'>{t('鼠鼠🐭公益站')}</span>
+          <span className='rounded bg-yellow-200 px-2 dark:bg-yellow-400/25'>
+            {t('鼠鼠🐭公益站')}
+          </span>
           。{t('为您搬运全世界最好的 AI 模型。')}
           <br />
           {t('不讲武德，只要奶酪。')}
@@ -54,10 +56,10 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
 
         {/* 按钮区域 - 移动端垂直排列，桌面端水平排列 */}
         <div className='flex flex-col items-center justify-center gap-4 pt-6 sm:flex-row sm:gap-6 sm:pt-10'>
-          {/* 主按钮 */}
+          {/* 主按钮:文字用 rat-warm,深浅模式下与 rat-brown 底色互为反色 */}
           <button
             onClick={handleGetCheese}
-            className='group bg-rat-brown relative z-10 w-full overflow-hidden rounded-[28px] px-8 py-4 text-lg font-black text-white transition-all hover:scale-105 hover:-rotate-1 active:scale-95 sm:w-auto sm:px-12 sm:py-6 sm:text-xl'
+            className='group bg-rat-brown text-rat-warm relative z-10 w-full overflow-hidden rounded-[28px] px-8 py-4 text-lg font-black transition-all hover:scale-105 hover:-rotate-1 active:scale-95 sm:w-auto sm:px-12 sm:py-6 sm:text-xl'
           >
             <span className='relative z-10'>{t('领一份奶酪 🧀')}</span>
             <span className='relative z-10 ml-2 inline-block transition-transform group-hover:translate-x-2'>
@@ -67,7 +69,7 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
           </button>
 
           {/* 在线人数显示 - 移到按钮右边 */}
-          <div className='flex items-center gap-3 rounded-full border border-yellow-100/50 bg-white/80 px-5 py-3 shadow-sm backdrop-blur sm:py-2'>
+          <div className='flex items-center gap-3 rounded-full border border-yellow-100/50 bg-white/80 px-5 py-3 shadow-sm backdrop-blur sm:py-2 dark:border-yellow-400/15 dark:bg-white/10'>
             <span className='relative flex h-3 w-3'>
               <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75'></span>
               <span className='relative inline-flex h-3 w-3 rounded-full bg-orange-500'></span>

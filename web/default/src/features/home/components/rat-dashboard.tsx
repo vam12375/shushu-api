@@ -95,14 +95,14 @@ export function RatDashboard() {
 
   return (
     <div className='relative mx-auto mt-24 w-full max-w-5xl px-4 pb-16 sm:mt-40 sm:px-8 sm:pb-24 lg:mt-48'>
-      <div className='absolute -top-12 -left-12 size-48 bg-yellow-400/20 blur-[80px]'></div>
-      <div className='absolute -right-12 -bottom-12 size-48 bg-orange-400/20 blur-[80px]'></div>
+      <div className='absolute -top-12 -left-12 size-48 bg-yellow-400/20 blur-[80px] dark:bg-yellow-400/10'></div>
+      <div className='absolute -right-12 -bottom-12 size-48 bg-orange-400/20 blur-[80px] dark:bg-orange-400/10'></div>
 
       <div
         className={cn(
           'relative z-10 overflow-hidden border-b-[8px] border-yellow-400/50 text-left',
-          'cubic-bezier(0.2,1,0.3,1) rounded-[32px] border-2 border-white/50 bg-white/70 p-6 backdrop-blur-[20px] transition-all duration-500 sm:rounded-[48px] sm:p-12',
-          'hover:bg-rat-cream hover:translate-y-[-12px] hover:scale-[1.02] hover:border-yellow-400 hover:shadow-[0_40px_80px_-20px_rgba(74,53,33,0.1)]'
+          'cubic-bezier(0.2,1,0.3,1) rounded-[32px] border-2 border-white/50 bg-white/70 p-6 backdrop-blur-[20px] transition-all duration-500 sm:rounded-[48px] sm:p-12 dark:border-white/10 dark:border-b-yellow-400/40 dark:bg-white/5',
+          'hover:bg-rat-cream hover:translate-y-[-12px] hover:scale-[1.02] hover:border-yellow-400 hover:shadow-[0_40px_80px_-20px_rgba(74,53,33,0.1)] dark:hover:border-yellow-400/60 dark:hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.55)]'
         )}
       >
         <div className='mb-8 flex flex-col items-start justify-between gap-4 sm:mb-12 sm:flex-row sm:gap-0'>
@@ -117,7 +117,7 @@ export function RatDashboard() {
               Rat-Powered Node Status
             </p>
           </div>
-          <div className='rounded-xl bg-[#FFECB3] px-3 py-1 text-[0.7rem] font-black tracking-widest text-[#795548] uppercase shadow-[2px_2px_0_#D7CCC8] sm:px-4 sm:py-1.5 sm:text-[0.75rem]'>
+          <div className='rounded-xl bg-[#FFECB3] px-3 py-1 text-[0.7rem] font-black tracking-widest text-[#795548] uppercase shadow-[2px_2px_0_#D7CCC8] sm:px-4 sm:py-1.5 sm:text-[0.75rem] dark:bg-yellow-400/15 dark:text-yellow-200 dark:shadow-[2px_2px_0_rgba(0,0,0,0.45)]'>
             {t('系统状态：巨稳')}
           </div>
         </div>
@@ -128,7 +128,7 @@ export function RatDashboard() {
           </div>
         ) : (
           <div className='grid grid-cols-1 gap-6 sm:gap-12 md:grid-cols-2'>
-            <div className='rounded-2xl border border-white/60 bg-white/40 p-4 sm:rounded-3xl sm:p-6'>
+            <div className='rounded-2xl border border-white/60 bg-white/40 p-4 sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-white/5'>
               <div className='mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-3'>
                 <MetricCell
                   icon={HeartPulse}
@@ -166,12 +166,15 @@ export function RatDashboard() {
             </div>
 
             <div className='bg-rat-brown/5 flex flex-col items-center justify-center space-y-3 rounded-[32px] p-6 text-center sm:space-y-4 sm:rounded-[40px] sm:p-8'>
-              <div className='animate-float-rat flex size-24 items-center justify-center rounded-full bg-white shadow-xl sm:size-32'>
-                <img
-                  src='https://api.iconify.design/noto:cheese-wedge.svg'
-                  className='size-16 sm:size-20'
-                  alt='Cheese'
-                />
+              {/* 奶酪图标用 emoji 替代外链 SVG(api.iconify.design 国内访问不稳定且增加请求) */}
+              <div className='animate-float-rat flex size-24 items-center justify-center rounded-full bg-white shadow-xl sm:size-32 dark:bg-white/10'>
+                <span
+                  className='text-6xl leading-none sm:text-7xl'
+                  role='img'
+                  aria-label='Cheese'
+                >
+                  🧀
+                </span>
               </div>
               <h4 className='text-lg font-black sm:text-xl'>
                 {t('今日奶酪已被偷取')}
@@ -183,7 +186,7 @@ export function RatDashboard() {
                 <div
                   // key 变化时重新触发入场动画,提示"本轮新增"
                   key={`${totalTokens}-${tokenDelta}`}
-                  className='animate-in fade-in slide-in-from-bottom-2 rounded-full bg-yellow-200/80 px-3 py-1 text-[11px] font-black tracking-wider text-[#795548] uppercase duration-700 sm:text-xs'
+                  className='animate-in fade-in slide-in-from-bottom-2 rounded-full bg-yellow-200/80 px-3 py-1 text-[11px] font-black tracking-wider text-[#795548] uppercase duration-700 sm:text-xs dark:bg-yellow-400/15 dark:text-yellow-200'
                 >
                   +{tokenDelta.toLocaleString()} {t('本轮新增')}
                 </div>
@@ -240,7 +243,7 @@ function MetricCell(props: {
   const Icon = props.icon
 
   return (
-    <div className='bg-rat-cream/60 rounded-2xl border border-white/70 px-3 py-3'>
+    <div className='bg-rat-cream/60 rounded-2xl border border-white/70 px-3 py-3 dark:border-white/10'>
       <div className='text-rat-brown/45 flex items-center gap-1.5 text-[10px] font-bold sm:text-[11px]'>
         <Icon className='size-3 shrink-0' aria-hidden='true' />
         <span className='truncate'>{props.label}</span>

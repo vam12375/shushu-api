@@ -87,7 +87,8 @@ function randomBetween(random: () => number, min: number, max: number) {
   return min + random() * (max - min)
 }
 
-function track<T>(items: T[], item: T) {
+// 泛型 U extends T:返回值保留子类型(如 ShaderMaterial),避免被收窄成基类 Material
+function track<T, U extends T>(items: T[], item: U): U {
   items.push(item)
   return item
 }
@@ -677,7 +678,8 @@ export function RatBackground() {
     <div
       ref={containerRef}
       aria-hidden='true'
-      className='pointer-events-none fixed inset-0 z-0 opacity-95'
+      // 深色模式下整体调低不透明度,避免暖色光雾在深色背景上过亮
+      className='pointer-events-none fixed inset-0 z-0 opacity-95 dark:opacity-70'
     />
   )
 }
