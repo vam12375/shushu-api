@@ -426,6 +426,74 @@ For commercial licensing, please contact support@quantumnous.com
     animation: scroll-x 40s linear infinite;
   }
 
+  /* ── 首页 3D 重构动效 ── */
+  /* 标题逐字 3D 弹出 */
+  @keyframes rat-ch-pop {
+    from {
+      opacity: 0;
+      transform: translateY(0.6em) rotateX(-80deg) scale(0.7);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotateX(0) scale(1);
+    }
+  }
+  .rat-ch {
+    display: inline-block;
+    opacity: 0;
+    animation: rat-ch-pop 0.65s cubic-bezier(0.2, 1.4, 0.3, 1) forwards;
+  }
+
+  /* 区块延迟上浮入场(配合 animation-delay 编排节奏) */
+  @keyframes rat-rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .rat-rise {
+    opacity: 0;
+    animation: rat-rise-in 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+  }
+
+  /* 滚动提示:鼠标滚轮小圆点上下滚动 */
+  @keyframes rat-wheel-dot {
+    50% {
+      transform: translateY(9px);
+      opacity: 0.2;
+    }
+  }
+  .rat-wheel::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 7px;
+    width: 4px;
+    height: 8px;
+    margin-left: -2px;
+    border-radius: 4px;
+    background: var(--rat-orange);
+    animation: rat-wheel-dot 1.6s ease-in-out infinite;
+  }
+
+  /* 滚动 3D 入场:进入视口时由 useReveal 加 .in 触发翻入 */
+  .rat-reveal {
+    opacity: 0;
+    transform: perspective(1000px) translateY(70px) rotateX(10deg);
+    transition:
+      opacity 0.9s cubic-bezier(0.2, 1, 0.3, 1),
+      transform 0.9s cubic-bezier(0.2, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+  .rat-reveal.in {
+    opacity: 1;
+    transform: perspective(1000px) translateY(0) rotateX(0);
+  }
+
   /* Pause animation on hover */
   .scroll-container:hover .animate-scroll-up,
   .scroll-container:hover .animate-scroll-down {
@@ -442,6 +510,19 @@ For commercial licensing, please contact support@quantumnous.com
     animation: none !important;
     opacity: 1;
     transform: none;
+  }
+
+  /* 首页 3D 动效降级:直接显示最终状态 */
+  .rat-ch,
+  .rat-rise,
+  .rat-reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .rat-wheel::after {
+    animation: none !important;
   }
 }
 

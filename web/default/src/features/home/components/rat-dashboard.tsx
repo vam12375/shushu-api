@@ -8,6 +8,8 @@ import type { ModelHealthItem } from '@/features/model-health/types'
 import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
 import type { PerfModelSummary } from '@/features/performance-metrics/types'
 import { useTodayStats } from '../hooks/use-today-stats'
+import { useReveal } from '../hooks/use-reveal'
+import { useTilt } from '../hooks/use-tilt'
 
 const PERFORMANCE_WINDOW_HOURS = 24
 const TOP_MODEL_LIMIT = 6
@@ -93,18 +95,35 @@ export function RatDashboard() {
   const isLoading =
     statsLoading || (metricsQuery.isLoading && !healthData && healthLoading)
 
+  // 滚动 3D 入场 + 看板 Tilt 倾斜(高光球跟随指针)
+  const revealRef = useReveal<HTMLDivElement>()
+  const { cardRef, glowRef } = useTilt<HTMLDivElement>()
+
   return (
-    <div className='relative mx-auto mt-24 w-full max-w-5xl px-4 pb-16 sm:mt-40 sm:px-8 sm:pb-24 lg:mt-48'>
+    <div
+      ref={revealRef}
+      className='rat-reveal relative mx-auto mt-24 w-full max-w-5xl px-4 pb-16 [perspective:1400px] sm:mt-40 sm:px-8 sm:pb-24 lg:mt-48'
+    >
       <div className='absolute -top-12 -left-12 size-48 bg-yellow-400/20 blur-[80px] dark:bg-yellow-400/10'></div>
       <div className='absolute -right-12 -bottom-12 size-48 bg-orange-400/20 blur-[80px] dark:bg-orange-400/10'></div>
 
       <div
+        ref={cardRef}
         className={cn(
-          'relative z-10 overflow-hidden border-b-[8px] border-yellow-400/50 text-left',
-          'cubic-bezier(0.2,1,0.3,1) rounded-[32px] border-2 border-white/50 bg-white/70 p-6 backdrop-blur-[20px] transition-all duration-500 sm:rounded-[48px] sm:p-12 dark:border-white/10 dark:border-b-yellow-400/40 dark:bg-white/5',
-          'hover:bg-rat-cream hover:translate-y-[-12px] hover:scale-[1.02] hover:border-yellow-400 hover:shadow-[0_40px_80px_-20px_rgba(74,53,33,0.1)] dark:hover:border-yellow-400/60 dark:hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.55)]'
+          // 注意:卡片本体不能用 overflow-hidden,否则 transform-style 被强制 flat,内部 translateZ 分层失效
+          'group relative z-10 border-b-[8px] border-yellow-400/50 text-left',
+          'rounded-[32px] border-2 border-white/50 bg-white/70 p-6 backdrop-blur-[20px] will-change-transform [transform-style:preserve-3d] sm:rounded-[48px] sm:p-12 dark:border-white/10 dark:border-b-yellow-400/40 dark:bg-white/5',
+          'hover:border-yellow-400 hover:shadow-[0_50px_100px_-30px_rgba(74,53,33,0.22)] dark:hover:border-yellow-400/60 dark:hover:shadow-[0_50px_100px_-30px_rgba(0,0,0,0.6)]'
         )}
       >
+        {/* 高光球裁剪层:overflow 收在这一层,避免破坏卡片的 preserve-3d */}
+        <div className='pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] sm:rounded-[46px]'>
+          {/* 跟随鼠标的高光球:纯色 + 大模糊(规避渐变),仅 hover 时可见 */}
+          <div
+            ref={glowRef}
+            className='absolute size-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/50 opacity-0 blur-[90px] transition-opacity duration-300 group-hover:opacity-100 dark:bg-yellow-400/20'
+          ></div>
+        </div>
         <div className='mb-8 flex flex-col items-start justify-between gap-4 sm:mb-12 sm:flex-row sm:gap-0'>
           <div>
             <h3 className='mb-1 text-2xl font-black sm:text-3xl'>
@@ -128,7 +147,8 @@ export function RatDashboard() {
           </div>
         ) : (
           <div className='grid grid-cols-1 gap-6 sm:gap-12 md:grid-cols-2'>
-            <div className='rounded-2xl border border-white/60 bg-white/40 p-4 sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-white/5'>
+            {/* 左侧指标面板:translateZ 让 Tilt 时产生悬浮分层 */}
+            <div className='rounded-2xl border border-white/60 bg-white/40 p-4 [transform:translateZ(30px)] sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-white/5'>
               <div className='mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-3'>
                 <MetricCell
                   icon={HeartPulse}
@@ -165,7 +185,8 @@ export function RatDashboard() {
               )}
             </div>
 
-            <div className='bg-rat-brown/5 flex flex-col items-center justify-center space-y-3 rounded-[32px] p-6 text-center sm:space-y-4 sm:rounded-[40px] sm:p-8'>
+            {/* 右侧奶酪统计:更高的 translateZ,Tilt 时浮得更靠前 */}
+            <div className='bg-rat-brown/5 flex flex-col items-center justify-center space-y-3 rounded-[32px] p-6 text-center [transform:translateZ(50px)] sm:space-y-4 sm:rounded-[40px] sm:p-8'>
               {/* 奶酪图标用 emoji 替代外链 SVG(api.iconify.design 国内访问不稳定且增加请求) */}
               <div className='animate-float-rat flex size-24 items-center justify-center rounded-full bg-white shadow-xl sm:size-32 dark:bg-white/10'>
                 <span

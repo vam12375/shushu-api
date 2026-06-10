@@ -26,7 +26,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { RatDashboard } from './components/rat-dashboard'
 import { RatHero } from './components/rat-hero'
 import { RatTicker } from './components/rat-ticker'
-import { useHomePageContent } from './hooks'
+import { useHomePageContent, useReveal } from './hooks'
 
 // Three.js 背景体积大(约 600KB),懒加载使其脱离首屏关键路径,
 // 避免拖慢 hero 标题(LCP 元素)的渲染
@@ -61,6 +61,8 @@ export function Home() {
   const [sessionValid, setSessionValid] = useState(false)
   const { content, isUrl } = useHomePageContent()
   const showBackground = useDeferredBackground()
+  // 鼠鼠语录滚动入场
+  const quoteRef = useReveal<HTMLDivElement>()
 
   useEffect(() => {
     let active = true
@@ -133,7 +135,10 @@ export function Home() {
           {isAuthenticated && <RatDashboard />}
           <RatTicker />
           {/* 鼠鼠语录 */}
-          <div className='max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 text-center'>
+          <div
+            ref={quoteRef}
+            className='rat-reveal max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 text-center'
+          >
             <div className='font-hand text-3xl sm:text-4xl lg:text-5xl opacity-30 text-rat-brown'>
               {t('"鼠鼠我呀，最爱 API 啦捏~"')}
             </div>

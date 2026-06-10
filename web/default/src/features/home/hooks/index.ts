@@ -18,3 +18,5 @@ For commercial licensing, please contact support@quantumnous.com
 */
 export { useHomePageContent } from './use-home-page-content'
 export { useTodayStats } from './use-today-stats'
+export { useReveal } from './use-reveal'
+export { useTilt } from './use-tilt'

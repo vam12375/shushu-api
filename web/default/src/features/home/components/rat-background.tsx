@@ -1,76 +1,25 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-type StampedePiece = {
-  band: number
-  baseProgress: number
-  lane: number
-  phase: number
-  scale: number
-  side: -1 | 1
-  speed: number
-  spin: THREE.Vector3
-}
-
-type Trail = {
-  band: number
-  baseProgress: number
-  lane: number
-  phase: number
-  side: -1 | 1
-  speed: number
-}
+/*
+  首页 3D 主场景:奶酪星球 🧀
+  ------------------------------------------------------------
+  从"氛围背景"升级为"视觉主角":
+  1. 奶酪星球:被啃掉一角的厚奶酪轮 + 立体孔洞 + 卡通描边 + 双层光环
+  2. 鼠群轨道:🐭 sprite 沿光环反向狂奔(颠跑抖动)
+  3. 拖拽交互:hero 区域内按住拖动旋转星球,松手带惯性衰减
+  4. 滚动驱动相机:下滚时星球滑向左后方让位给看板区,收尾时碎片前涌
+  5. 空间氛围:奶酪粒子网(圆球节点+邻近连线) + 奶酪屑点云 + 漂浮 🧀,指针视差联动
+*/
 
 const CHEESE_YELLOW = 0xffd23f
 const CHEESE_LIGHT = 0xffec8a
 const CHEESE_ORANGE = 0xff9f1c
-const RAT_BROWN = 0x4a3521
+const CHEESE_DEEP = 0xe8a90c
 const RAT_TEAL = 0x2ec4b6
 const CREAM = 0xfff8df
 
-const backdropVertexShader = `
-  varying vec2 vUv;
-
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`
-
-const backdropFragmentShader = `
-  precision highp float;
-
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform vec2 uPointer;
-
-  float ring(vec2 p, float radius, float width) {
-    return smoothstep(width, 0.0, abs(length(p) - radius));
-  }
-
-  void main() {
-    vec2 p = (vUv - 0.5) * vec2(2.45, 2.0);
-    p.x += uPointer.x * 0.08;
-    p.y -= uPointer.y * 0.04;
-
-    float center = smoothstep(0.92, 0.08, length(p * vec2(1.05, 1.35)));
-    float amber = smoothstep(1.22, 0.1, length(p - vec2(0.58, 0.12)));
-    float teal = smoothstep(1.05, 0.08, length(p + vec2(0.75, -0.36)));
-    float pulse = ring(p + vec2(0.04, -0.04), 0.64 + sin(uTime * 0.22) * 0.035, 0.06);
-    float trackGlow = smoothstep(0.24, 0.0, abs(abs(p.x) - (0.42 + p.y * 0.18)));
-    trackGlow *= smoothstep(1.0, -0.18, p.y);
-
-    vec3 color = vec3(1.0, 0.96, 0.78);
-    color = mix(color, vec3(1.0, 0.66, 0.08), amber * 0.56);
-    color = mix(color, vec3(0.18, 0.72, 0.66), teal * 0.16);
-    color += vec3(1.0, 0.76, 0.18) * pulse * 0.22;
-    color += vec3(1.0, 0.50, 0.08) * trackGlow * 0.08;
-
-    float alpha = clamp(center * 0.2 + amber * 0.16 + teal * 0.06 + pulse * 0.06 + trackGlow * 0.08, 0.0, 0.34);
-    gl_FragColor = vec4(color, alpha);
-  }
-`
-
+// 确定性随机:每次刷新画面布局一致,避免闪变
 function seededRandom(seed: number) {
   let state = seed >>> 0
 
@@ -87,449 +36,174 @@ function randomBetween(random: () => number, min: number, max: number) {
   return min + random() * (max - min)
 }
 
-// 泛型 U extends T:返回值保留子类型(如 ShaderMaterial),避免被收窄成基类 Material
+// 泛型 U extends T:返回值保留子类型,避免被收窄成基类
 function track<T, U extends T>(items: T[], item: U): U {
   items.push(item)
   return item
 }
 
-function createCheeseShardGeometry() {
-  const geometry = new THREE.BufferGeometry()
-  const vertices = new Float32Array([
-    -0.72, -0.34, -0.12, 0.62, -0.34, -0.12, -0.2, 0.52, -0.12, -0.72, -0.34,
-    0.12, 0.62, -0.34, 0.12, -0.2, 0.52, 0.12,
-  ])
-
-  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
-  geometry.setIndex([
-    0, 1, 2, 5, 4, 3, 0, 3, 4, 0, 4, 1, 1, 4, 5, 1, 5, 2, 2, 5, 3, 2, 3, 0,
-  ])
-  geometry.computeVertexNormals()
-
-  return geometry
+// emoji 转 Sprite 贴图(🐭/🧀 都用它,零外部资源请求)
+function emojiTexture(textures: THREE.Texture[], emoji: string, size = 160) {
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.font = `${size * 0.8}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(emoji, size / 2, size / 2 + size * 0.04)
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return track(textures, texture)
 }
 
-function getTrackPosition(
-  progress: number,
-  piece: Pick<StampedePiece, 'band' | 'lane' | 'phase' | 'side'>,
-  isCompact: boolean,
-  target = new THREE.Vector3()
-) {
-  const curved = progress * progress
-  const z = THREE.MathUtils.lerp(-18, 7.4, curved)
-  const maxSpread = isCompact ? 4.4 : 9.2
-  const spread = THREE.MathUtils.lerp(
-    isCompact ? 1.1 : 1.85,
-    maxSpread,
-    Math.pow(progress, 1.42)
-  )
-  const laneOffset = piece.lane * (isCompact ? 0.42 : 0.78)
-  const wave =
-    Math.sin(progress * 8.6 + piece.phase) * (isCompact ? 0.16 : 0.32)
-
-  const trackY = (() => {
-    if (piece.band === 0) return THREE.MathUtils.lerp(0.18, -1.22, progress)
-    if (piece.band === 1) return THREE.MathUtils.lerp(-3.12, -1.78, progress)
-    return THREE.MathUtils.lerp(-1.1, -1.46, progress)
-  })()
-
-  target.set(
-    piece.side * (spread + laneOffset + wave),
-    trackY + Math.cos(progress * 7.4 + piece.phase) * 0.22,
-    z
-  )
-
-  return target
+type OrbitRat = {
+  sprite: THREE.Sprite
+  radius: number
+  phase: number
+  speed: number
+  bob: number
 }
 
-function createBackdrop(
+type NetNode = {
+  x: number
+  y: number
+  z: number
+  scale: number
+  phase: number
+}
+
+type FloatingCheese = {
+  sprite: THREE.Sprite
+  baseY: number
+  phase: number
+}
+
+// 创建奶酪星球(主体 + 孔洞 + 描边 + 双光环),返回光环引用供帧循环驱动
+function createCheesePlanet(
   geometries: THREE.BufferGeometry[],
   materials: THREE.Material[]
 ) {
-  const material = track(
-    materials,
-    new THREE.ShaderMaterial({
-      blending: THREE.NormalBlending,
-      depthWrite: false,
-      fragmentShader: backdropFragmentShader,
-      transparent: true,
-      uniforms: {
-        uPointer: { value: new THREE.Vector2() },
-        uTime: { value: 0 },
-      },
-      vertexShader: backdropVertexShader,
-    })
-  )
+  const planet = new THREE.Group()
 
-  const mesh = new THREE.Mesh(
-    track(geometries, new THREE.PlaneGeometry(26, 15, 1, 1)),
-    material
-  )
-  mesh.position.set(0, 0.1, -19)
-
-  return { material, mesh }
-}
-
-function createCheesePlanet(
-  geometries: THREE.BufferGeometry[],
-  materials: THREE.Material[],
-  isCompact: boolean
-) {
-  const group = new THREE.Group()
-  const radius = isCompact ? 1.32 : 2.12
-  const depth = isCompact ? 0.2 : 0.28
+  // 奶酪轮主体:厚圆柱缺一角(被鼠鼠啃掉的形状)
   const wedgeGeometry = track(
     geometries,
-    new THREE.CylinderGeometry(
-      radius,
-      radius,
-      depth,
-      72,
-      1,
-      false,
-      -0.28,
-      Math.PI * 1.42
-    )
+    new THREE.CylinderGeometry(2.5, 2.5, 1.25, 96, 1, false, -0.3, Math.PI * 1.62)
   )
-
-  const planetMaterial = track(
+  const wedgeMaterial = track(
     materials,
     new THREE.MeshStandardMaterial({
       color: CHEESE_YELLOW,
-      depthWrite: false,
       emissive: CHEESE_ORANGE,
-      emissiveIntensity: 0.18,
-      opacity: 0.42,
-      roughness: 0.82,
-      transparent: true,
+      emissiveIntensity: 0.12,
+      metalness: 0.02,
+      roughness: 0.58,
     })
   )
+  planet.add(new THREE.Mesh(wedgeGeometry, wedgeMaterial))
 
-  const edgeMaterial = track(
-    materials,
-    new THREE.LineBasicMaterial({
-      blending: THREE.AdditiveBlending,
-      color: CHEESE_LIGHT,
-      depthWrite: false,
-      opacity: 0.28,
-      transparent: true,
-    })
-  )
-
+  // 奶酪孔:深色小球半嵌入表面,营造立体孔洞
   const holeMaterial = track(
     materials,
-    new THREE.MeshBasicMaterial({
-      color: RAT_BROWN,
-      depthWrite: false,
-      opacity: 0.09,
-      transparent: true,
-    })
+    new THREE.MeshStandardMaterial({ color: CHEESE_DEEP, roughness: 0.85 })
   )
-
-  const planet = new THREE.Mesh(wedgeGeometry, planetMaterial)
-  planet.rotation.x = Math.PI / 2
-  group.add(planet)
-
-  const edges = new THREE.LineSegments(
-    track(geometries, new THREE.EdgesGeometry(wedgeGeometry, 28)),
-    edgeMaterial
-  )
-  edges.rotation.x = Math.PI / 2
-  group.add(edges)
-
-  const holeGeometry = track(geometries, new THREE.CircleGeometry(1, 32))
-  const holes = [
-    [-0.46, 0.34, 0.2],
-    [0.24, 0.46, 0.16],
-    [0.54, -0.08, 0.22],
-    [-0.16, -0.28, 0.13],
-    [-0.62, -0.2, 0.11],
+  const holeGeometry = track(geometries, new THREE.SphereGeometry(1, 24, 24))
+  const holes: Array<[number, number, number, number]> = [
+    [0.9, 0.41, 1.6, 0.34],
+    [-0.7, 0.41, 1.1, 0.26],
+    [1.7, 0.41, 0.2, 0.3],
+    [-1.5, 0.41, 0.9, 0.22],
+    [0.2, 0.41, 0.6, 0.2],
+    [-0.2, 0.41, 1.9, 0.24],
+    [2.1, 0.12, -0.8, 0.26],
+    [-2.2, 0.06, -0.4, 0.22],
+    [0.4, -0.38, 1.7, 0.28],
   ]
-
-  holes.forEach(([x, y, scale], index) => {
+  holes.forEach(([x, y, z, scale]) => {
     const hole = new THREE.Mesh(holeGeometry, holeMaterial)
-    hole.position.set(
-      x * radius * (index === 0 ? 0.82 : 1),
-      y * radius,
-      depth / 2 + 0.018
-    )
-    hole.scale.setScalar(radius * scale * 0.86)
-    group.add(hole)
+    hole.position.set(x, y, z)
+    hole.scale.setScalar(scale)
+    planet.add(hole)
   })
 
-  group.position.set(isCompact ? 2.85 : 6.95, isCompact ? -0.4 : -1.0, -8.8)
-  group.rotation.set(
-    isCompact ? -0.08 : -0.1,
-    isCompact ? -0.18 : -0.34,
-    isCompact ? -0.36 : -0.42
-  )
-
-  return group
-}
-
-function createTrackRibbons(
-  geometries: THREE.BufferGeometry[],
-  materials: THREE.Material[],
-  isCompact: boolean
-) {
-  const group = new THREE.Group()
-  const random = seededRandom(109)
-  const trackWidth = isCompact ? 3.3 : 7.3
-  const ribbonData = [
-    { color: CHEESE_ORANGE, opacity: 0.28, side: -1 as const, y: -1.25 },
-    { color: CHEESE_YELLOW, opacity: 0.28, side: 1 as const, y: -1.25 },
-    { color: RAT_BROWN, opacity: 0.11, side: -1 as const, y: 0.94 },
-    { color: RAT_TEAL, opacity: 0.13, side: 1 as const, y: 0.78 },
-  ]
-
-  ribbonData.forEach((ribbon, index) => {
-    const points = [
-      new THREE.Vector3(ribbon.side * 0.28, ribbon.y + 0.8, -17.2),
-      new THREE.Vector3(
-        ribbon.side * randomBetween(random, 1.15, 1.8),
-        ribbon.y + randomBetween(random, 0.2, 0.8),
-        -11.5
-      ),
-      new THREE.Vector3(
-        ribbon.side * randomBetween(random, 2.8, 4.2),
-        ribbon.y,
-        -4.5
-      ),
-      new THREE.Vector3(ribbon.side * trackWidth, ribbon.y - 0.42, 5.8),
-    ]
-    const curve = new THREE.CatmullRomCurve3(points)
-    const geometry = track(
-      geometries,
-      new THREE.TubeGeometry(curve, 180, index < 2 ? 0.026 : 0.016, 8, false)
-    )
-    const material = track(
-      materials,
-      new THREE.MeshBasicMaterial({
-        blending: THREE.AdditiveBlending,
-        color: ribbon.color,
-        depthWrite: false,
-        opacity: ribbon.opacity,
-        transparent: true,
-      })
-    )
-    group.add(new THREE.Mesh(geometry, material))
-  })
-
-  return group
-}
-
-function createStampedePieces(
-  geometries: THREE.BufferGeometry[],
-  materials: THREE.Material[],
-  isCompact: boolean
-) {
-  const random = seededRandom(404)
-  const count = isCompact ? 24 : 46
-  const pieces: StampedePiece[] = []
-  const dummy = new THREE.Object3D()
-  const position = new THREE.Vector3()
-  const color = new THREE.Color()
-
-  const geometry = track(geometries, createCheeseShardGeometry())
-  const material = track(
-    materials,
-    new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      depthWrite: false,
-      opacity: isCompact ? 0.2 : 0.26,
-      side: THREE.DoubleSide,
-      transparent: true,
-      vertexColors: true,
-    })
-  )
-  const mesh = new THREE.InstancedMesh(geometry, material, count)
-  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-  mesh.frustumCulled = false
-
-  for (let index = 0; index < count; index += 1) {
-    pieces.push({
-      band: index % 5 === 0 ? 2 : index % 2,
-      baseProgress: random(),
-      lane: randomBetween(random, -0.5, 1.15),
-      phase: randomBetween(random, 0, Math.PI * 2),
-      scale: randomBetween(random, 0.24, 0.64),
-      side: random() > 0.5 ? 1 : -1,
-      speed: randomBetween(random, 0.035, 0.11),
-      spin: new THREE.Vector3(
-        randomBetween(random, -0.85, 0.85),
-        randomBetween(random, -1.1, 1.1),
-        randomBetween(random, -1.2, 1.2)
-      ),
-    })
-
-    color
-      .set(
-        index % 9 === 0
-          ? CHEESE_LIGHT
-          : index % 4 === 0
-            ? CHEESE_ORANGE
-            : CHEESE_YELLOW
-      )
-      .lerp(new THREE.Color(CREAM), randomBetween(random, 0.18, 0.42))
-    mesh.setColorAt(index, color)
-  }
-
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
-
-  const update = (elapsed: number) => {
-    pieces.forEach((piece, index) => {
-      const progress = (piece.baseProgress + elapsed * piece.speed) % 1
-      getTrackPosition(progress, piece, isCompact, position)
-
-      const scale =
-        piece.scale * THREE.MathUtils.lerp(0.22, 1.35, Math.pow(progress, 1.7))
-      dummy.position.copy(position)
-      dummy.rotation.set(
-        piece.spin.x * elapsed + piece.phase,
-        piece.spin.y * elapsed * 0.8 + progress * 1.2,
-        piece.spin.z * elapsed + progress * Math.PI
-      )
-      dummy.scale.set(scale, scale * 0.92, scale)
-      dummy.updateMatrix()
-      mesh.setMatrixAt(index, dummy.matrix)
-    })
-    mesh.instanceMatrix.needsUpdate = true
-  }
-
-  update(0)
-  return { mesh, update }
-}
-
-function createCrumbField(
-  geometries: THREE.BufferGeometry[],
-  materials: THREE.Material[],
-  isCompact: boolean
-) {
-  const random = seededRandom(867)
-  const count = isCompact ? 34 : 58
-  const crumbs: StampedePiece[] = []
-  const dummy = new THREE.Object3D()
-  const position = new THREE.Vector3()
-  const color = new THREE.Color()
-
-  const mesh = new THREE.InstancedMesh(
-    track(geometries, new THREE.IcosahedronGeometry(1, 1)),
+  // 边缘描线:浅黄叠加发光,强化卡通轮廓
+  const edges = new THREE.LineSegments(
+    track(geometries, new THREE.EdgesGeometry(wedgeGeometry, 30)),
     track(
       materials,
-      new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        depthWrite: false,
-        opacity: 0.13,
+      new THREE.LineBasicMaterial({
+        blending: THREE.AdditiveBlending,
+        color: CHEESE_LIGHT,
+        opacity: 0.6,
         transparent: true,
-        vertexColors: true,
       })
-    ),
-    count
+    )
   )
-  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-  mesh.frustumCulled = false
+  planet.add(edges)
 
-  for (let index = 0; index < count; index += 1) {
-    crumbs.push({
-      band: index % 3,
-      baseProgress: random(),
-      lane: randomBetween(random, -0.8, 1.6),
-      phase: randomBetween(random, 0, Math.PI * 2),
-      scale: randomBetween(random, 0.01, 0.028),
-      side: random() > 0.5 ? 1 : -1,
-      speed: randomBetween(random, 0.06, 0.18),
-      spin: new THREE.Vector3(),
-    })
-
-    color
-      .set(
-        index % 12 === 0
-          ? RAT_TEAL
-          : index % 4 === 0
-            ? CHEESE_LIGHT
-            : CHEESE_ORANGE
+  // 双层行星光环(鼠群跑道)
+  const makeRing = (radius: number, color: number, opacity: number, tube: number) => {
+    const ring = new THREE.Mesh(
+      track(geometries, new THREE.TorusGeometry(radius, tube, 12, 140)),
+      track(
+        materials,
+        new THREE.MeshBasicMaterial({
+          blending: THREE.AdditiveBlending,
+          color,
+          depthWrite: false,
+          opacity,
+          transparent: true,
+        })
       )
-      .lerp(new THREE.Color(CREAM), 0.28)
-    mesh.setColorAt(index, color)
+    )
+    ring.rotation.x = Math.PI / 2
+    return ring
   }
+  const ringA = makeRing(3.7, CHEESE_ORANGE, 0.5, 0.02)
+  ringA.rotation.z = 0.18
+  const ringB = makeRing(4.5, RAT_TEAL, 0.32, 0.014)
+  ringB.rotation.z = -0.26
+  planet.add(ringA, ringB)
 
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+  planet.rotation.set(0.42, -0.4, -0.12)
 
-  const update = (elapsed: number) => {
-    crumbs.forEach((crumb, index) => {
-      const progress = (crumb.baseProgress + elapsed * crumb.speed) % 1
-      getTrackPosition(progress, crumb, isCompact, position)
-      position.y += Math.sin(elapsed * 0.8 + crumb.phase) * 0.28
-      position.z -= 0.35
-
-      const scale =
-        crumb.scale * THREE.MathUtils.lerp(0.55, 4.0, Math.pow(progress, 1.7))
-      dummy.position.copy(position)
-      dummy.rotation.set(elapsed + crumb.phase, elapsed * 0.6, crumb.phase)
-      dummy.scale.setScalar(scale)
-      dummy.updateMatrix()
-      mesh.setMatrixAt(index, dummy.matrix)
-    })
-    mesh.instanceMatrix.needsUpdate = true
-  }
-
-  update(0)
-  return { mesh, update }
+  return { planet, ringA, ringB }
 }
 
-function createSpeedTrails(
-  geometries: THREE.BufferGeometry[],
+// 鼠群轨道:🐭 sprite 挂在光环节点下,沿环狂奔
+function createOrbitRats(
+  textures: THREE.Texture[],
   materials: THREE.Material[],
-  isCompact: boolean
+  random: () => number,
+  rings: Array<{ ring: THREE.Mesh; radius: number; count: number; speed: number; size: number }>
 ) {
-  const random = seededRandom(901)
-  const count = isCompact ? 24 : 42
-  const trails: Trail[] = []
-  const positions = new Float32Array(count * 2 * 3)
-  const start = new THREE.Vector3()
-  const end = new THREE.Vector3()
+  const ratTexture = emojiTexture(textures, '🐭')
+  const rats: OrbitRat[] = []
 
-  for (let index = 0; index < count; index += 1) {
-    trails.push({
-      band: index % 3,
-      baseProgress: random(),
-      lane: randomBetween(random, -0.5, 1.35),
-      phase: randomBetween(random, 0, Math.PI * 2),
-      side: random() > 0.5 ? 1 : -1,
-      speed: randomBetween(random, 0.08, 0.17),
-    })
-  }
+  rings.forEach(({ ring, radius, count, speed, size }) => {
+    for (let index = 0; index < count; index += 1) {
+      const sprite = new THREE.Sprite(
+        track(
+          materials,
+          new THREE.SpriteMaterial({ depthWrite: false, map: ratTexture, transparent: true })
+        )
+      )
+      sprite.scale.setScalar(size)
+      ring.add(sprite)
+      rats.push({
+        bob: randomBetween(random, 0, Math.PI * 2),
+        phase: (index / count) * Math.PI * 2,
+        radius,
+        speed,
+        sprite,
+      })
+    }
+  })
 
-  const geometry = track(geometries, new THREE.BufferGeometry())
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  const material = track(
-    materials,
-    new THREE.LineBasicMaterial({
-      blending: THREE.AdditiveBlending,
-      color: CHEESE_ORANGE,
-      depthWrite: false,
-      opacity: 0.14,
-      transparent: true,
-    })
-  )
-  const lines = new THREE.LineSegments(geometry, material)
-  lines.frustumCulled = false
-
-  const update = (elapsed: number) => {
-    trails.forEach((trail, index) => {
-      const progress = (trail.baseProgress + elapsed * trail.speed) % 1
-      getTrackPosition(progress, trail, isCompact, start)
-      getTrackPosition(Math.max(progress - 0.045, 0), trail, isCompact, end)
-      end.z -= 1.15
-
-      positions.set(start.toArray(), index * 6)
-      positions.set(end.toArray(), index * 6 + 3)
-    })
-    geometry.attributes.position.needsUpdate = true
-  }
-
-  update(0)
-  return { lines, update }
+  return rats
 }
 
 export function RatBackground() {
@@ -541,15 +215,17 @@ export function RatBackground() {
 
     const geometries: THREE.BufferGeometry[] = []
     const materials: THREE.Material[] = []
+    const textures: THREE.Texture[] = []
+    const random = seededRandom(42)
+
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
-      48,
+      46,
       window.innerWidth / window.innerHeight,
       0.1,
-      80
+      100
     )
-    camera.position.set(0, 2.95, 10.8)
-    camera.lookAt(0, -0.48, -8)
+    camera.position.set(0, 0.6, 12)
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -558,69 +234,215 @@ export function RatBackground() {
     })
     renderer.setClearAlpha(0)
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8))
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.domElement.className = 'h-full w-full'
     container.appendChild(renderer.domElement)
 
-    const root = new THREE.Group()
+    // 暖色三点布光
+    const ambient = new THREE.AmbientLight(0xfff4cc, 1.6)
+    const key = new THREE.DirectionalLight(0xffffff, 2.6)
+    key.position.set(-4, 6, 5)
+    const fill = new THREE.PointLight(CHEESE_ORANGE, 30, 30)
+    fill.position.set(5, 2, -2)
+    const rim = new THREE.PointLight(RAT_TEAL, 14, 26)
+    rim.position.set(-6, -2, -6)
+    scene.add(ambient, key, fill, rim)
+
     const world = new THREE.Group()
-    scene.add(root)
-    root.add(world)
+    scene.add(world)
 
-    const isCompact = window.innerWidth < 768
-    world.position.y = isCompact ? -1.02 : -0.82
+    // ---------- 奶酪星球 + 鼠群 ----------
+    const { planet, ringA, ringB } = createCheesePlanet(geometries, materials)
+    world.add(planet)
 
-    const ambient = new THREE.AmbientLight(0xfff4cc, 1.8)
-    const key = new THREE.DirectionalLight(0xffffff, 2.2)
-    key.position.set(-3.5, 5.2, 4.4)
-    const fill = new THREE.PointLight(CHEESE_ORANGE, 9, 24)
-    fill.position.set(3.8, 1.6, -5)
-    scene.add(ambient, key, fill)
+    const rats = createOrbitRats(textures, materials, random, [
+      { count: 5, radius: 3.7, ring: ringA, size: 0.62, speed: 0.55 },
+      { count: 4, radius: 4.5, ring: ringB, size: 0.5, speed: -0.38 },
+    ])
 
-    const backdrop = createBackdrop(geometries, materials)
-    root.add(backdrop.mesh)
-
-    const planet = createCheesePlanet(geometries, materials, isCompact)
-    const ribbons = createTrackRibbons(geometries, materials, isCompact)
-    const speedTrails = createSpeedTrails(geometries, materials, isCompact)
-    const stampedePieces = createStampedePieces(
-      geometries,
-      materials,
-      isCompact
+    // ---------- 奶酪粒子网:圆球节点 + 邻近连线 ----------
+    // 用不受光照影响的 MeshBasicMaterial,避免出现背光发黑的死色
+    const nodeCount = 32
+    const nodeMesh = new THREE.InstancedMesh(
+      track(geometries, new THREE.SphereGeometry(0.14, 16, 16)),
+      track(
+        materials,
+        new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          depthWrite: false,
+          opacity: 0.9,
+          transparent: true,
+          vertexColors: true,
+        })
+      ),
+      nodeCount
     )
-    const crumbs = createCrumbField(geometries, materials, isCompact)
-    world.add(
-      planet,
-      ribbons,
-      speedTrails.lines,
-      stampedePieces.mesh,
-      crumbs.mesh
-    )
+    nodeMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+    nodeMesh.frustumCulled = false
+    const nodes: NetNode[] = []
+    const dummy = new THREE.Object3D()
+    const nodeColor = new THREE.Color()
+    for (let index = 0; index < nodeCount; index += 1) {
+      nodes.push({
+        phase: randomBetween(random, 0, Math.PI * 2),
+        scale: randomBetween(random, 0.5, 1.4),
+        x: randomBetween(random, -11, 11),
+        y: randomBetween(random, -5, 5),
+        z: randomBetween(random, -14, -2),
+      })
+      nodeColor.set(
+        index % 3 === 0 ? CHEESE_ORANGE : index % 7 === 0 ? RAT_TEAL : CHEESE_YELLOW
+      )
+      nodeMesh.setColorAt(index, nodeColor)
+    }
+    if (nodeMesh.instanceColor) nodeMesh.instanceColor.needsUpdate = true
+    world.add(nodeMesh)
 
+    // 连线:每帧把距离小于阈值的节点两两连起来(LineSegments + drawRange)
+    const linkDistance = 4.2
+    const maxSegments = (nodeCount * (nodeCount - 1)) / 2
+    const linkPositions = new Float32Array(maxSegments * 6)
+    const linkGeometry = track(geometries, new THREE.BufferGeometry())
+    linkGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(linkPositions, 3)
+    )
+    const links = new THREE.LineSegments(
+      linkGeometry,
+      track(
+        materials,
+        new THREE.LineBasicMaterial({
+          // 橙色在浅色奶油底和深色底上都可见(比加色混合更稳)
+          color: CHEESE_ORANGE,
+          depthWrite: false,
+          opacity: 0.22,
+          transparent: true,
+        })
+      )
+    )
+    links.frustumCulled = false
+    world.add(links)
+    // 节点当前坐标缓存,供连线计算复用
+    const nodeCurrent = new Float32Array(nodeCount * 3)
+
+    // ---------- 奶酪屑点云 ----------
+    const crumbCount = 240
+    const crumbPositions = new Float32Array(crumbCount * 3)
+    for (let index = 0; index < crumbCount; index += 1) {
+      crumbPositions[index * 3] = randomBetween(random, -16, 16)
+      crumbPositions[index * 3 + 1] = randomBetween(random, -8, 8)
+      crumbPositions[index * 3 + 2] = randomBetween(random, -18, 2)
+    }
+    const crumbGeometry = track(geometries, new THREE.BufferGeometry())
+    crumbGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(crumbPositions, 3)
+    )
+    const crumbs = new THREE.Points(
+      crumbGeometry,
+      track(
+        materials,
+        new THREE.PointsMaterial({
+          color: CREAM,
+          depthWrite: false,
+          opacity: 0.55,
+          size: 0.055,
+          transparent: true,
+        })
+      )
+    )
+    world.add(crumbs)
+
+    // ---------- 漂浮 🧀 sprite ----------
+    const cheeseTexture = emojiTexture(textures, '🧀')
+    const floatingCheese: FloatingCheese[] = []
+    for (let index = 0; index < 6; index += 1) {
+      const sprite = new THREE.Sprite(
+        track(
+          materials,
+          new THREE.SpriteMaterial({
+            depthWrite: false,
+            map: cheeseTexture,
+            opacity: 0.9,
+            transparent: true,
+          })
+        )
+      )
+      sprite.scale.setScalar(randomBetween(random, 0.4, 0.85))
+      sprite.position.set(
+        randomBetween(random, -9, 9),
+        randomBetween(random, -4, 4),
+        randomBetween(random, -10, -3)
+      )
+      floatingCheese.push({
+        baseY: sprite.position.y,
+        phase: randomBetween(random, 0, Math.PI * 2),
+        sprite,
+      })
+      world.add(sprite)
+    }
+
+    // ---------- 交互状态 ----------
     const pointer = new THREE.Vector2()
     const targetPointer = new THREE.Vector2()
+    let dragging = false
+    let lastX = 0
+    let lastY = 0
+    let velX = 0 // 拖拽角速度(带惯性衰减)
+    let velY = 0
+    let scrollT = 0 // 滚动进度 0~1
+
+    // hero 区域内才允许拖拽(避免抢占下方内容的滚动/点击)
+    const inHeroRange = () => window.scrollY < window.innerHeight * 0.8
+
+    const isInteractiveTarget = (target: EventTarget | null) =>
+      target instanceof Element &&
+      target.closest('button, a, input, textarea, select, [role="button"]') !== null
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!inHeroRange() || isInteractiveTarget(event.target)) return
+      dragging = true
+      lastX = event.clientX
+      lastY = event.clientY
+    }
 
     const handlePointerMove = (event: PointerEvent) => {
       targetPointer.set(
         (event.clientX / window.innerWidth - 0.5) * 2,
         (event.clientY / window.innerHeight - 0.5) * 2
       )
+      if (dragging) {
+        velY = (event.clientX - lastX) * 0.0045
+        velX = (event.clientY - lastY) * 0.0035
+        lastX = event.clientX
+        lastY = event.clientY
+      }
+    }
+
+    const handlePointerUp = () => {
+      dragging = false
+    }
+
+    const handleScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      scrollT = max > 0 ? Math.min(window.scrollY / max, 1) : 0
     }
 
     const handleResize = () => {
-      const compact = window.innerWidth < 768
       camera.aspect = window.innerWidth / window.innerHeight
-      camera.position.set(0, compact ? 2.42 : 2.95, compact ? 12.2 : 10.8)
-      camera.lookAt(0, compact ? -0.54 : -0.48, -8)
       camera.updateProjectionMatrix()
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8))
       renderer.setSize(window.innerWidth, window.innerHeight)
       renderer.render(scene, camera)
     }
 
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true })
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    window.addEventListener('pointerup', handlePointerUp, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('resize', handleResize)
+    handleScroll()
 
     const reduceMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
@@ -628,39 +450,124 @@ export function RatBackground() {
     const clock = new THREE.Clock()
     let animationFrameId: number | undefined
 
+    // 单帧更新:滚动镜头语言 + 自转/惯性 + 各元素动画
+    const updateFrame = (elapsed: number) => {
+      pointer.lerp(targetPointer, 0.06)
+
+      // 滚动镜头语言:
+      //   0.05~0.45 hero→看板:星球滑向左后方让出版面,镜头上移
+      //   0.55~0.95 收尾:星球远退,碎片前涌
+      const p1 = THREE.MathUtils.smoothstep(scrollT, 0.05, 0.45)
+      const p2 = THREE.MathUtils.smoothstep(scrollT, 0.55, 0.95)
+      const compact = window.innerWidth < 768
+
+      planet.position.x = THREE.MathUtils.lerp(0, compact ? -1.6 : -6.2, p1)
+      planet.position.y =
+        THREE.MathUtils.lerp(compact ? -2.6 : -2.3, 0.8, p1) +
+        Math.sin(elapsed * 0.6) * 0.12
+      planet.position.z =
+        THREE.MathUtils.lerp(0, -7, p1) + THREE.MathUtils.lerp(0, -6, p2)
+      planet.scale.setScalar(THREE.MathUtils.lerp(compact ? 0.62 : 1, 0.8, p1))
+
+      // 自转 + 拖拽惯性(阻尼衰减)
+      planet.rotation.y += 0.0028 + velY
+      planet.rotation.x = THREE.MathUtils.clamp(
+        planet.rotation.x + velX,
+        -0.5,
+        1.1
+      )
+      velX *= 0.94
+      velY *= 0.94
+
+      // 光环各自旋转 + 鼠群沿环狂奔(小幅颠跑增加生动感)
+      ringA.rotation.y = elapsed * 0.1
+      ringB.rotation.y = -elapsed * 0.07
+      rats.forEach((rat) => {
+        const angle = rat.phase + elapsed * rat.speed
+        rat.sprite.position.set(
+          Math.cos(angle) * rat.radius,
+          Math.sin(angle) * rat.radius,
+          Math.sin(elapsed * 6 + rat.bob) * 0.1
+        )
+      })
+
+      // 粒子网:节点漂浮(p2 阶段整体前涌),再把邻近节点两两连线
+      nodes.forEach((node, index) => {
+        const nx = node.x
+        const ny = node.y + Math.sin(elapsed * 0.5 + node.phase) * 0.5
+        const nz = node.z + p2 * 5
+        nodeCurrent[index * 3] = nx
+        nodeCurrent[index * 3 + 1] = ny
+        nodeCurrent[index * 3 + 2] = nz
+        dummy.position.set(nx, ny, nz)
+        dummy.rotation.set(0, 0, 0)
+        dummy.scale.setScalar(node.scale)
+        dummy.updateMatrix()
+        nodeMesh.setMatrixAt(index, dummy.matrix)
+      })
+      nodeMesh.instanceMatrix.needsUpdate = true
+
+      let segment = 0
+      const maxDistSq = linkDistance * linkDistance
+      for (let i = 0; i < nodeCount; i += 1) {
+        for (let j = i + 1; j < nodeCount; j += 1) {
+          const dx = nodeCurrent[i * 3] - nodeCurrent[j * 3]
+          const dy = nodeCurrent[i * 3 + 1] - nodeCurrent[j * 3 + 1]
+          const dz = nodeCurrent[i * 3 + 2] - nodeCurrent[j * 3 + 2]
+          if (dx * dx + dy * dy + dz * dz > maxDistSq) continue
+          linkPositions.set(
+            [
+              nodeCurrent[i * 3],
+              nodeCurrent[i * 3 + 1],
+              nodeCurrent[i * 3 + 2],
+              nodeCurrent[j * 3],
+              nodeCurrent[j * 3 + 1],
+              nodeCurrent[j * 3 + 2],
+            ],
+            segment * 6
+          )
+          segment += 1
+        }
+      }
+      linkGeometry.setDrawRange(0, segment * 2)
+      linkGeometry.attributes.position.needsUpdate = true
+
+      // 🧀 缓慢浮动
+      floatingCheese.forEach((cheese) => {
+        cheese.sprite.position.y =
+          cheese.baseY + Math.sin(elapsed * 0.7 + cheese.phase) * 0.4
+        const material = cheese.sprite.material
+        material.rotation = Math.sin(elapsed * 0.4 + cheese.phase) * 0.3
+      })
+
+      // 指针视差 + 滚动相机俯仰
+      world.rotation.y = pointer.x * 0.05
+      world.rotation.x = pointer.y * 0.03
+      camera.position.x = pointer.x * 0.5
+      camera.position.y = 0.6 - pointer.y * 0.3 + p1 * 0.8
+      camera.lookAt(0, p1 * 0.5, 0)
+    }
+
     const renderFrame = () => {
-      const elapsed = clock.getElapsedTime()
-      pointer.lerp(targetPointer, 0.055)
-
-      backdrop.material.uniforms.uTime.value = elapsed
-      backdrop.material.uniforms.uPointer.value.copy(pointer)
-      root.rotation.x = pointer.y * 0.028
-      root.rotation.y = pointer.x * 0.044
-      world.position.x = pointer.x * 0.18
-      world.position.y = (isCompact ? -1.02 : -0.82) - pointer.y * 0.06
-      planet.rotation.z = -0.18 + elapsed * 0.045 + pointer.x * 0.05
-      ribbons.rotation.z = Math.sin(elapsed * 0.24) * 0.012
-
-      speedTrails.update(elapsed)
-      stampedePieces.update(elapsed)
-      crumbs.update(elapsed)
-
+      updateFrame(clock.getElapsedTime())
       renderer.render(scene, camera)
       animationFrameId = window.requestAnimationFrame(renderFrame)
     }
 
     handleResize()
     if (reduceMotion) {
-      speedTrails.update(0)
-      stampedePieces.update(0)
-      crumbs.update(0)
+      // 降级:只渲染静态首帧
+      updateFrame(0)
       renderer.render(scene, camera)
     } else {
       renderFrame()
     }
 
     return () => {
+      window.removeEventListener('pointerdown', handlePointerDown)
       window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', handlePointerUp)
+      window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleResize)
       if (animationFrameId !== undefined) {
         window.cancelAnimationFrame(animationFrameId)
@@ -670,6 +577,7 @@ export function RatBackground() {
       }
       geometries.forEach((geometry) => geometry.dispose())
       materials.forEach((material) => material.dispose())
+      textures.forEach((texture) => texture.dispose())
       renderer.dispose()
     }
   }, [])
@@ -678,8 +586,8 @@ export function RatBackground() {
     <div
       ref={containerRef}
       aria-hidden='true'
-      // 深色模式下整体调低不透明度,避免暖色光雾在深色背景上过亮
-      className='pointer-events-none fixed inset-0 z-0 opacity-95 dark:opacity-70'
+      // 深色模式下整体调低不透明度,避免暖色奶酪在深色背景上过亮
+      className='pointer-events-none fixed inset-0 z-0 opacity-95 dark:opacity-75'
     />
   )
 }

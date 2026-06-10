@@ -1,11 +1,46 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useStatus } from '@/hooks/use-status'
+
+// 逐字 3D 弹出:把整行文字拆成单字 span,交错延迟翻转入场
+function PopText({ text, baseDelay = 0.15 }: { text: string; baseDelay?: number }) {
+  return (
+    <>
+      {Array.from(text).map((ch, index) => (
+        <span
+          key={index}
+          className='rat-ch'
+          style={{ animationDelay: `${baseDelay + index * 0.045}s` }}
+        >
+          {ch === ' ' ? ' ' : ch}
+        </span>
+      ))}
+    </>
+  )
+}
 
 export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { status } = useStatus()
+  const titleRef = useRef<HTMLHeadingElement>(null)
+
+  // 标题轻微跟随鼠标 3D 倾斜(直接写 style,避免高频 setState)
+  useEffect(() => {
+    const title = titleRef.current
+    if (!title) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const rx = (event.clientY / window.innerHeight - 0.5) * -6
+      const ry = (event.clientX / window.innerWidth - 0.5) * 8
+      title.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`
+    }
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    return () => window.removeEventListener('pointermove', handlePointerMove)
+  }, [])
 
   // 处理"领一份奶酪"按钮点击
   const handleGetCheese = () => {
@@ -32,19 +67,26 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
         : null
 
   return (
-    <main className='mx-auto flex min-h-[85vh] max-w-7xl flex-col items-center justify-center px-4 py-24 text-center sm:px-8 sm:py-32 lg:py-40'>
-      <div className='w-full space-y-10 sm:space-y-14 lg:space-y-16'>
-        {/* 标题 */}
-        <h1 className='font-outfit text-[clamp(2.5rem,8vw,8rem)] leading-[0.85] font-black tracking-[-0.04em]'>
-          STAMPEDE <br />
-          OF{' '}
-          <span className='text-rat-yellow drop-shadow-[0_0_15px_rgba(255,210,63,0.5)]'>
-            INTELLIGENCE
+    <main className='mx-auto flex min-h-[100vh] max-w-7xl flex-col items-center justify-center px-4 py-24 text-center [perspective:1200px] sm:px-8 sm:py-32'>
+      <div className='w-full space-y-10 sm:space-y-14'>
+        {/* 标题:逐字 3D 弹出 + 整体跟随鼠标倾斜 */}
+        <h1
+          ref={titleRef}
+          className='font-outfit text-[clamp(2.5rem,8vw,8rem)] leading-[0.88] font-black tracking-[-0.04em] will-change-transform [transform-style:preserve-3d]'
+        >
+          <span className='block'>
+            <PopText text='STAMPEDE' />
+          </span>
+          <span className='block'>
+            <PopText text='OF ' baseDelay={0.55} />
+            <span className='text-rat-yellow drop-shadow-[0_0_15px_rgba(255,210,63,0.5)]'>
+              <PopText text='INTELLIGENCE' baseDelay={0.7} />
+            </span>
           </span>
         </h1>
 
-        {/* 描述文本 - 居中 */}
-        <p className='text-rat-brown/60 mx-auto max-w-3xl text-xl leading-relaxed font-medium sm:text-2xl'>
+        {/* 描述文本:延迟上浮入场 */}
+        <p className='rat-rise text-rat-brown/60 mx-auto max-w-3xl text-xl leading-relaxed font-medium [animation-delay:1s] sm:text-2xl'>
           {t('这里是')}{' '}
           <span className='rounded bg-yellow-200 px-2 dark:bg-yellow-400/25'>
             {t('鼠鼠🐭公益站')}
@@ -54,8 +96,8 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
           {t('不讲武德，只要奶酪。')}
         </p>
 
-        {/* 按钮区域 - 移动端垂直排列，桌面端水平排列 */}
-        <div className='flex flex-col items-center justify-center gap-4 pt-6 sm:flex-row sm:gap-6 sm:pt-10'>
+        {/* 按钮区域:再延迟一拍入场 */}
+        <div className='rat-rise flex flex-col items-center justify-center gap-4 pt-6 [animation-delay:1.2s] sm:flex-row sm:gap-6 sm:pt-10'>
           {/* 主按钮:文字用 rat-warm,深浅模式下与 rat-brown 底色互为反色 */}
           <button
             onClick={handleGetCheese}
@@ -82,6 +124,12 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
               {t('只鼠鼠在线')}
             </span>
           </div>
+        </div>
+
+        {/* 滚动提示:奶酪星球随滚动联动,引导用户往下探索 */}
+        <div className='rat-rise pt-12 text-[11px] font-black tracking-[0.32em] uppercase [animation-delay:1.6s]'>
+          <span className='rat-wheel border-rat-brown relative mx-auto mb-3 block h-[38px] w-6 rounded-[14px] border-[2.5px] opacity-55'></span>
+          {t('往下滚 · 奶酪会动')}
         </div>
       </div>
     </main>
