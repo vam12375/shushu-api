@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Gauge, HeartPulse, Timer } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -47,6 +47,20 @@ export function RatDashboard() {
     () => metricsQuery.data?.data.models ?? [],
     [metricsQuery.data]
   )
+
+  // 追踪两次刷新之间的token增量,用于展示"本轮新增"
+  const [tokenDelta, setTokenDelta] = useState(0)
+  const lastTokensRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (statsLoading) return
+    const last = lastTokensRef.current
+    // 仅在数值增长时记录增量(跨天归零等回退场景不展示)
+    if (last !== null && totalTokens > last) {
+      setTokenDelta(totalTokens - last)
+    }
+    lastTokensRef.current = totalTokens
+  }, [totalTokens, statsLoading])
+
   const healthModels = useMemo(
     () => healthData?.data.models ?? [],
     [healthData]
@@ -163,8 +177,17 @@ export function RatDashboard() {
                 {t('今日奶酪已被偷取')}
               </h4>
               <div className='text-rat-orange text-4xl font-black tracking-tighter sm:text-5xl'>
-                {totalTokens.toLocaleString()}
+                <RollingNumber value={totalTokens} />
               </div>
+              {tokenDelta > 0 && (
+                <div
+                  // key 变化时重新触发入场动画,提示"本轮新增"
+                  key={`${totalTokens}-${tokenDelta}`}
+                  className='animate-in fade-in slide-in-from-bottom-2 rounded-full bg-yellow-200/80 px-3 py-1 text-[11px] font-black tracking-wider text-[#795548] uppercase duration-700 sm:text-xs'
+                >
+                  +{tokenDelta.toLocaleString()} {t('本轮新增')}
+                </div>
+              )}
               <p className='text-rat-brown/40 text-[11px] font-bold tracking-widest uppercase sm:text-xs'>
                 {t('成功率')} {formatPercent(summary.successRate)} ·{' '}
                 {t('平均延迟')} {formatLatency(summary.avgLatencyMs)}
@@ -178,6 +201,34 @@ export function RatDashboard() {
       </div>
     </div>
   )
+}
+
+// 滚动数字:数值变化时从旧值平滑滚动到新值,避免大数字生硬跳变
+function RollingNumber({ value }: { value: number }) {
+  const [display, setDisplay] = useState(value)
+  const prevRef = useRef(value)
+
+  useEffect(() => {
+    const from = prevRef.current
+    const to = value
+    if (from === to) return
+    prevRef.current = to
+
+    const duration = 1200
+    const start = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1)
+      // easeOutCubic:前快后慢,滚动观感更自然
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplay(Math.round(from + (to - from) * eased))
+      if (progress < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+
+  return <span className='tabular-nums'>{display.toLocaleString()}</span>
 }
 
 function MetricCell(props: {

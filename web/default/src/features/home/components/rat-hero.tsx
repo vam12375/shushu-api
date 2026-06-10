@@ -18,8 +18,18 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
     }
   }
 
-  // 获取在线用户数（从status API获取http_stats.active_connections，fallback到1204）
-  const onlineUsers = (status as any)?.http_stats?.active_connections || 1204
+  // 在线人数:优先读后端 online_users(最近活跃访客),缺失时退回连接数;
+  // 两者都无效时显示 --,不再用固定数字伪装在线人数
+  const onlineUsersValue = Number((status as any)?.online_users)
+  const activeConnections = Number(
+    (status as any)?.http_stats?.active_connections
+  )
+  const onlineUsers =
+    Number.isFinite(onlineUsersValue) && onlineUsersValue > 0
+      ? onlineUsersValue
+      : Number.isFinite(activeConnections) && activeConnections > 0
+        ? activeConnections
+        : null
 
   return (
     <main className='mx-auto flex min-h-[85vh] max-w-7xl flex-col items-center justify-center px-4 py-24 text-center sm:px-8 sm:py-32 lg:py-40'>
@@ -36,7 +46,7 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
         {/* 描述文本 - 居中 */}
         <p className='text-rat-brown/60 mx-auto max-w-3xl text-xl leading-relaxed font-medium sm:text-2xl'>
           {t('这里是')}{' '}
-          <span className='rounded bg-yellow-200 px-2'>{t('鼠鼠公益站')}</span>
+          <span className='rounded bg-yellow-200 px-2'>{t('鼠鼠🐭公益站')}</span>
           。{t('为您搬运全世界最好的 AI 模型。')}
           <br />
           {t('不讲武德，只要奶酪。')}
@@ -65,7 +75,7 @@ export function RatHero({ isAuthenticated }: { isAuthenticated: boolean }) {
             <span className='text-rat-brown/80 text-[11px] font-black tracking-wider whitespace-nowrap uppercase sm:text-[10px] sm:tracking-widest'>
               {t('当前')}{' '}
               <span className='text-rat-orange'>
-                {onlineUsers.toLocaleString()}
+                {onlineUsers === null ? '--' : onlineUsers.toLocaleString()}
               </span>{' '}
               {t('只鼠鼠在线')}
             </span>

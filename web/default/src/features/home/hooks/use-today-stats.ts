@@ -55,7 +55,7 @@ export function useTodayStats() {
         true // 获取所有用户的数据（管理员视角）
       ),
     staleTime: 60 * 1000, // 1分钟缓存
-    refetchInterval: 5 * 60 * 1000, // 每5分钟自动刷新
+    refetchInterval: 5 * 60 * 1000, // 每5分钟自动刷新,配合看板滚动展示本轮新增token
   })
 
   // 计算今日总token消耗和总请求数
