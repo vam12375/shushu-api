@@ -21,7 +21,6 @@ import { type QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
   Outlet,
-  redirect,
 } from '@tanstack/react-router'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
@@ -96,7 +95,7 @@ export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
   // 应用初始化与路由解析前统一校验会话
-  beforeLoad: async ({ location }) => {
+  beforeLoad: ({ location }) => {
     const pathname = location?.pathname || ''
     const needsSetupCheck =
       !setupStatusChecked && !pathname.startsWith('/setup')
@@ -106,21 +105,27 @@ export const Route = createRootRouteWithContext<{
     // 如果 auth.user 为 null，说明用户未登录，直接让 _authenticated 路由处理重定向
     // 不再调用 getSelf() API，避免不必要的网络请求和等待
 
-    // 只检查 setup 状态（如果需要）
+    // setup 状态后台异步检查,不再 await 阻塞首屏渲染(LCP 优化):
+    // 已安装的站点(绝大多数情况)首访可少串行等待一次 API;
+    // 全新未初始化的站点会先短暂闪现默认首页,检测到后再跳转 /setup(一次性流程,可接受)
     if (needsSetupCheck) {
-      const status = await getSetupStatus().catch((error) => {
-        if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
-          console.warn('[root.beforeLoad] setup status check failed', error)
-        }
-        return null
-      })
-
-      if (status?.success && status.data && !status.data.status) {
-        throw redirect({ to: '/setup' })
-      }
       setupStatusChecked = true
-      setSetupStatusCache(true)
+      getSetupStatus()
+        .then((status) => {
+          if (status?.success && status.data && !status.data.status) {
+            window.location.href = '/setup'
+            return
+          }
+          setSetupStatusCache(true)
+        })
+        .catch((error) => {
+          // 检查失败时还原标记,允许下次导航重试
+          setupStatusChecked = false
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.warn('[root.beforeLoad] setup status check failed', error)
+          }
+        })
     }
     // 用户认证状态完全依赖 localStorage 缓存
     // 如果用户有有效 session 但 localStorage 被清空，会被重定向到登录页重新登录

@@ -17,31 +17,34 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useState } from 'react'
-import i18next from 'i18next'
-import { toast } from 'sonner'
 import { getHomePageContent } from '../api'
 import type { HomePageContentResult } from '../types'
 
 const STORAGE_KEY = 'home_page_content'
 
+function readCachedContent(): string {
+  try {
+    return localStorage.getItem(STORAGE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
 /**
  * Hook to load and manage custom home page content
  * Supports both Markdown/HTML content and iframe URLs
+ *
+ * 乐观渲染策略(LCP 优化):不再等待 API 返回才渲染首页。
+ * 初始值取 localStorage 缓存(绝大多数站点为空 => 直接渲染默认首页),
+ * API 在后台刷新,内容有变化时再无缝替换。
  */
 export function useHomePageContent(): HomePageContentResult {
-  const [content, setContent] = useState<string>('')
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [content, setContent] = useState<string>(readCachedContent)
 
   useEffect(() => {
     let mounted = true
 
     const loadContent = async () => {
-      // Load from localStorage first for immediate display
-      const cached = localStorage.getItem(STORAGE_KEY)
-      if (cached && mounted) {
-        setContent(cached)
-      }
-
       try {
         const response = await getHomePageContent()
         const { success, data } = response
@@ -52,19 +55,14 @@ export function useHomePageContent(): HomePageContentResult {
           setContent(data)
           localStorage.setItem(STORAGE_KEY, data)
         } else {
-          // Clear content if API returns empty
+          // 后台确认无自定义内容时清空(已渲染的默认首页不受影响)
           setContent('')
           localStorage.removeItem(STORAGE_KEY)
         }
       } catch (error) {
-        if (!mounted) return
+        // 拉取失败时保留当前内容(缓存或默认首页),仅记录日志不打扰用户
         // eslint-disable-next-line no-console
         console.error('Failed to load home page content:', error)
-        toast.error(i18next.t('Failed to load home page content'))
-      } finally {
-        if (mounted) {
-          setIsLoaded(true)
-        }
       }
     }
 
@@ -83,5 +81,5 @@ export function useHomePageContent(): HomePageContentResult {
     // not a URL
   }
 
-  return { content, isLoaded, isUrl }
+  return { content, isUrl }
 }

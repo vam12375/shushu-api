@@ -26,6 +26,15 @@ For commercial licensing, please contact support@quantumnous.com
  * that activates it. Loaded globally so font-switching is instantaneous
  * with no FOUT once the variable is fetched. */
 @import '@fontsource-variable/lora';
+/* 鼠鼠主页字体本地自托管(Outfit 标题 / Gaegu 手写 / JetBrains Mono 数字),
+ * 替代原 index.html 中的 Google Fonts 外链:消除渲染阻塞请求,
+ * 且国内环境无法访问 Google CDN,自托管后同源加载稳定快速 */
+@import '@fontsource-variable/outfit';
+/* Gaegu 仅引入 latin 子集:全量 css 含 100+ 个韩文分片的 @font-face 规则
+ * (约 100KB CSS + 7MB 字体文件),而手写体仅用于拉丁字符,中文走系统回退 */
+@import '@fontsource/gaegu/latin-400.css';
+@import '@fontsource/gaegu/latin-700.css';
+@import '@fontsource-variable/jetbrains-mono';
 
 @import './theme.css';
 @import './theme-presets.css';

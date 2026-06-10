@@ -31,9 +31,11 @@ export interface HomePageContentResponse {
 
 /**
  * Home page content result from hook
+ *
+ * 注:乐观渲染改造后不再有 isLoaded 加载门控,
+ * content 初始即为缓存值(通常为空 => 渲染默认首页)
  */
 export interface HomePageContentResult {
   content: string
-  isLoaded: boolean
   isUrl: boolean
 }

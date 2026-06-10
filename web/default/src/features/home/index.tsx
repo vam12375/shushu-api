@@ -16,27 +16,51 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
 import { getSelf } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
-import {
-  RatBackground,
-  RatDashboard,
-  RatHero,
-  RatTicker,
-} from './components'
+import { RatDashboard } from './components/rat-dashboard'
+import { RatHero } from './components/rat-hero'
+import { RatTicker } from './components/rat-ticker'
 import { useHomePageContent } from './hooks'
+
+// Three.js 背景体积大(约 600KB),懒加载使其脱离首屏关键路径,
+// 避免拖慢 hero 标题(LCP 元素)的渲染
+const RatBackground = lazy(() =>
+  import('./components/rat-background').then((m) => ({
+    default: m.RatBackground,
+  }))
+)
+
+// 首帧绘制完成后再挂载 WebGL 背景:chunk 下载与 WebGL 初始化都让位于 LCP
+function useDeferredBackground() {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(() => setShow(true), {
+        timeout: 1500,
+      })
+      return () => window.cancelIdleCallback(handle)
+    }
+    const timer = window.setTimeout(() => setShow(true), 300)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  return show
+}
 
 export function Home() {
   const { t } = useTranslation()
   const { auth } = useAuthStore()
   const [sessionChecked, setSessionChecked] = useState(false)
   const [sessionValid, setSessionValid] = useState(false)
-  const { content, isLoaded, isUrl } = useHomePageContent()
+  const { content, isUrl } = useHomePageContent()
+  const showBackground = useDeferredBackground()
 
   useEffect(() => {
     let active = true
@@ -76,18 +100,6 @@ export function Home() {
 
   const isAuthenticated = sessionChecked && sessionValid
 
-  if (!isLoaded) {
-    return (
-      <PublicLayout showMainContainer={false}>
-        <main className='flex min-h-screen items-center justify-center font-outfit bg-rat-warm'>
-          <div className='text-rat-brown/60 font-bold animate-pulse'>
-            {t('Loading...')}
-          </div>
-        </main>
-      </PublicLayout>
-    )
-  }
-
   if (content && content.trim() !== '') {
     return (
       <PublicLayout showMainContainer={false}>
@@ -111,7 +123,11 @@ export function Home() {
   return (
     <PublicLayout showMainContainer={false}>
       <div className='relative font-outfit text-rat-brown bg-rat-warm selection:bg-rat-yellow/30'>
-        <RatBackground />
+        {showBackground && (
+          <Suspense fallback={null}>
+            <RatBackground />
+          </Suspense>
+        )}
         <div className='relative z-10'>
           <RatHero isAuthenticated={isAuthenticated} />
           {isAuthenticated && <RatDashboard />}

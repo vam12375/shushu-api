@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Outfit:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <!-- 字体已改为本地自托管(@fontsource,见 src/styles/index.css),
+         不再外链 Google Fonts:避免渲染阻塞与国内访问不通 -->
 
     <!-- Primary Meta Tags -->
     <title>ShuShu 🐭 Community Station — Based on NEW-API</title>
@@ -14,7 +15,9 @@
       content="ShuShu Community Station — Unified AI API gateway and admin dashboard. Based on NEW-API."
     />
 
-    <meta name="theme-color" content="#fff" />
+    <!-- 浏览器 UI 色随系统深浅模式切换 -->
+    <meta name="theme-color" content="#fffcf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#231d14" media="(prefers-color-scheme: dark)" />
     <!--umami-->
     <!--Google Analytics-->
   </head>
