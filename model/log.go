@@ -165,13 +165,16 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
 	otherStr := common.MapToJsonStr(other)
-	// 判断是否需要记录 IP
-	needRecordIp := false
-	if settingMap, err := GetUserSetting(userId, false); err == nil {
-		if settingMap.RecordIpLog {
-			needRecordIp = true
-		}
-	}
+	// 判断是否需要记录 IP:由管理员全局开关统一控制,用户端无法干预
+	needRecordIp := common.ForceRecordIpLogEnabled
+	// 用户个人设置回退已停用:IP 记录完全由管理员强制开关决定
+	// if !needRecordIp {
+	// 	if settingMap, err := GetUserSetting(userId, false); err == nil {
+	// 		if settingMap.RecordIpLog {
+	// 			needRecordIp = true
+	// 		}
+	// 	}
+	// }
 	log := &Log{
 		UserId:           userId,
 		Username:         username,
@@ -228,13 +231,16 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
 	otherStr := common.MapToJsonStr(params.Other)
-	// 判断是否需要记录 IP
-	needRecordIp := false
-	if settingMap, err := GetUserSetting(userId, false); err == nil {
-		if settingMap.RecordIpLog {
-			needRecordIp = true
-		}
-	}
+	// 判断是否需要记录 IP:由管理员全局开关统一控制,用户端无法干预
+	needRecordIp := common.ForceRecordIpLogEnabled
+	// 用户个人设置回退已停用:IP 记录完全由管理员强制开关决定
+	// if !needRecordIp {
+	// 	if settingMap, err := GetUserSetting(userId, false); err == nil {
+	// 		if settingMap.RecordIpLog {
+	// 			needRecordIp = true
+	// 		}
+	// 	}
+	// }
 	log := &Log{
 		UserId:           userId,
 		Username:         username,

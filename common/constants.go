@@ -97,6 +97,9 @@ var MemoryCacheEnabled bool
 
 var LogConsumeEnabled = true
 
+// ForceRecordIpLogEnabled 管理员全局开关:开启后强制为所有用户的使用/错误日志记录 IP,忽略用户个人设置
+var ForceRecordIpLogEnabled = false
+
 var TLSInsecureSkipVerify bool
 var InsecureTLSConfig = &tls.Config{InsecureSkipVerify: true}
 
