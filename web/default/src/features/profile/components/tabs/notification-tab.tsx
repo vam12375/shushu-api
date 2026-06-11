@@ -365,7 +365,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
           />
         </div>
 
-        {/* Record IP Log */}
+        {/* 用户端 IP 记录开关已停用:IP 记录改由管理员在「运营设置 → 日志维护」中全局强制控制,用户无法自行开启或取消
         <div className='flex items-start justify-between gap-3 rounded-lg border p-3 sm:items-center sm:p-4'>
           <div className='space-y-0.5'>
             <Label htmlFor='recordIp'>{t('Record IP Address')}</Label>
@@ -380,6 +380,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
             onCheckedChange={(checked) => updateField('record_ip_log', checked)}
           />
         </div>
+        */}
       </div>
 
       {/* Save Button */}

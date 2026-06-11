@@ -765,6 +765,26 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
     },
 
     {
+      // IP 列:位于费用列之后,完整明文显示,不随敏感信息开关遮罩
+      accessorKey: 'ip',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('IP Address')} />
+      ),
+      cell: ({ row }) => {
+        const log = row.original
+        if (!log.ip) return null
+
+        return (
+          <span className='text-muted-foreground font-mono text-xs tabular-nums'>
+            {log.ip}
+          </span>
+        )
+      },
+      meta: { label: t('IP Address') },
+      size: 130,
+    },
+
+    {
       accessorKey: 'content',
       header: t('Details'),
       cell: function DetailsCell({ row }) {
