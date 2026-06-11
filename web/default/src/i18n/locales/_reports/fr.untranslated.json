@@ -4,5 +4,15 @@
   "Unable to load model health": "Unable to load model health",
   "Public model availability and success-rate page.": "Public model availability and success-rate page.",
   "Require login to view model health": "Require login to view model health",
-  "Visitors must authenticate before accessing the model health page.": "Visitors must authenticate before accessing the model health page."
+  "Visitors must authenticate before accessing the model health page.": "Visitors must authenticate before accessing the model health page.",
+  "Multi-protocol compatible, just works": "Multi-protocol compatible API routes, works out of the box",
+  "Pay-as-you-go with real-time monitoring": "Pay-as-you-go with real-time usage monitoring",
+  "Community-driven, self-hosted, extensible": "Community-driven, self-hosted, and extensible",
+  "designed to fly": "designed to fly",
+  "Three steps to take off": "Three steps to take off",
+  "No complex setup, just a few clicks and youre ready to go": "No complex setup, just a few clicks and you're ready to go",
+  "Join the rat crew now": "Join the crew and enjoy free AI!",
+  "往下滚 · 奶酪会动": "Scroll down · the cheese moves",
+  "Your tokens are currently disabled. Please delete and recreate them.": "Your tokens are currently disabled. Please delete and recreate them.",
+  "Failed to load IP guard status": "Failed to load IP guard status"
 }
