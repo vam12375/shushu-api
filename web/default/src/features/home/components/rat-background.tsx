@@ -19,6 +19,11 @@ const CHEESE_DEEP = 0xe8a90c
 const RAT_TEAL = 0x2ec4b6
 const CREAM = 0xfff8df
 
+// Edge 浏览器检测：通过 UA 识别 Edg/ 标识（Edge 79+ 使用 Chromium 内核）
+function isEdgeBrowser() {
+  return /Edg\//.test(navigator.userAgent)
+}
+
 // 确定性随机:每次刷新画面布局一致,避免闪变
 function seededRandom(seed: number) {
   let state = seed >>> 0
@@ -218,6 +223,14 @@ export function RatBackground() {
     const textures: THREE.Texture[] = []
     const random = seededRandom(42)
 
+    // Edge 性能档位：降低粒子网复杂度和帧率
+    const isEdge = isEdgeBrowser()
+    const nodeCount = isEdge ? 16 : 32 // Edge: 节点数减半，连线计算从 O(496) 降至 O(120)
+    const linkDistance = isEdge ? 3.5 : 4.2 // Edge: 收紧连线距离，进一步减少判定次数
+    const crumbCount = isEdge ? 120 : 240 // Edge: 点云数量减半
+    const targetFPS = isEdge ? 30 : 60 // Edge: 降低帧率到 30fps
+    const frameInterval = 1000 / targetFPS
+
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
       46,
@@ -263,7 +276,6 @@ export function RatBackground() {
 
     // ---------- 奶酪粒子网:圆球节点 + 邻近连线 ----------
     // 用不受光照影响的 MeshBasicMaterial,避免出现背光发黑的死色
-    const nodeCount = 32
     const nodeMesh = new THREE.InstancedMesh(
       track(geometries, new THREE.SphereGeometry(0.14, 16, 16)),
       track(
@@ -300,7 +312,6 @@ export function RatBackground() {
     world.add(nodeMesh)
 
     // 连线:每帧把距离小于阈值的节点两两连起来(LineSegments + drawRange)
-    const linkDistance = 4.2
     const maxSegments = (nodeCount * (nodeCount - 1)) / 2
     const linkPositions = new Float32Array(maxSegments * 6)
     const linkGeometry = track(geometries, new THREE.BufferGeometry())
@@ -327,7 +338,6 @@ export function RatBackground() {
     const nodeCurrent = new Float32Array(nodeCount * 3)
 
     // ---------- 奶酪屑点云 ----------
-    const crumbCount = 240
     const crumbPositions = new Float32Array(crumbCount * 3)
     for (let index = 0; index < crumbCount; index += 1) {
       crumbPositions[index * 3] = randomBetween(random, -16, 16)
@@ -449,6 +459,7 @@ export function RatBackground() {
     ).matches
     const clock = new THREE.Clock()
     let animationFrameId: number | undefined
+    let lastFrameTime = 0 // Edge 帧率控制：记录上次渲染时间
 
     // 单帧更新:滚动镜头语言 + 自转/惯性 + 各元素动画
     const updateFrame = (elapsed: number) => {
@@ -549,6 +560,14 @@ export function RatBackground() {
     }
 
     const renderFrame = () => {
+      const now = performance.now()
+      // Edge 帧率限制：只有距离上次渲染超过 frameInterval 才执行
+      if (isEdge && now - lastFrameTime < frameInterval) {
+        animationFrameId = window.requestAnimationFrame(renderFrame)
+        return
+      }
+      lastFrameTime = now
+
       updateFrame(clock.getElapsedTime())
       renderer.render(scene, camera)
       animationFrameId = window.requestAnimationFrame(renderFrame)
