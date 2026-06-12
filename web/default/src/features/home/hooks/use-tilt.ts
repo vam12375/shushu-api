@@ -22,7 +22,15 @@ import { useEffect, useRef } from 'react'
   3D Tilt 卡片:卡片跟随鼠标三维倾斜,并驱动高光球跟随指针位置。
   直接写 style 避免高频 setState;离开时带缓动复位。
   返回 { cardRef, glowRef },高光球元素可选。
+
+  Edge 浏览器：禁用 Tilt 效果，避免高频 pointermove 监听导致卡顿
 */
+
+// Edge 浏览器检测
+function isEdgeBrowser() {
+  return /Edg\//.test(navigator.userAgent)
+}
+
 export function useTilt<T extends HTMLElement, G extends HTMLElement = HTMLDivElement>(
   maxRotateX = 7,
   maxRotateY = 9
@@ -31,6 +39,9 @@ export function useTilt<T extends HTMLElement, G extends HTMLElement = HTMLDivEl
   const glowRef = useRef<G>(null)
 
   useEffect(() => {
+    // Edge 浏览器：完全跳过 Tilt 绑定
+    if (isEdgeBrowser()) return
+
     const card = cardRef.current
     if (!card) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return

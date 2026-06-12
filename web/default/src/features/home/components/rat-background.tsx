@@ -212,6 +212,11 @@ function createOrbitRats(
 }
 
 export function RatBackground() {
+  // Edge 浏览器：完全禁用 3D 背景，避免主线程阻塞导致页面卡顿
+  if (isEdgeBrowser()) {
+    return null
+  }
+
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -223,8 +228,8 @@ export function RatBackground() {
     const textures: THREE.Texture[] = []
     const random = seededRandom(42)
 
-    // Edge 性能档位：降低粒子网复杂度和帧率
-    const isEdge = isEdgeBrowser()
+    // Chrome/Firefox 性能档位（Edge 已在组件入口退出）
+    const isEdge = false
     const nodeCount = isEdge ? 16 : 32 // Edge: 节点数减半，连线计算从 O(496) 降至 O(120)
     const linkDistance = isEdge ? 3.5 : 4.2 // Edge: 收紧连线距离，进一步减少判定次数
     const crumbCount = isEdge ? 120 : 240 // Edge: 点云数量减半

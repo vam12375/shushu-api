@@ -98,6 +98,7 @@ export function RatDashboard() {
   // 滚动 3D 入场 + 看板 Tilt 倾斜(高光球跟随指针)
   const revealRef = useReveal<HTMLDivElement>()
   const { cardRef, glowRef } = useTilt<HTMLDivElement>()
+  const isEdge = /Edg\//.test(navigator.userAgent)
 
   return (
     <div
@@ -112,7 +113,10 @@ export function RatDashboard() {
         className={cn(
           // 注意:卡片本体不能用 overflow-hidden,否则 transform-style 被强制 flat,内部 translateZ 分层失效
           'group relative z-10 border-b-[8px] border-yellow-400/50 text-left',
-          'rounded-[32px] border-2 border-white/50 bg-white/70 p-6 backdrop-blur-[20px] will-change-transform [transform-style:preserve-3d] sm:rounded-[48px] sm:p-12 dark:border-white/10 dark:border-b-yellow-400/40 dark:bg-white/5',
+          // Edge: 移除 backdrop-blur 和 transform-style，改用纯色背景
+          isEdge
+            ? 'rounded-[32px] border-2 border-white/50 bg-white/90 p-6 will-change-auto sm:rounded-[48px] sm:p-12 dark:border-white/10 dark:border-b-yellow-400/40 dark:bg-gray-900/90'
+            : 'rounded-[32px] border-2 border-white/50 bg-white/70 p-6 backdrop-blur-[20px] will-change-transform [transform-style:preserve-3d] sm:rounded-[48px] sm:p-12 dark:border-white/10 dark:border-b-yellow-400/40 dark:bg-white/5',
           'hover:border-yellow-400 hover:shadow-[0_50px_100px_-30px_rgba(74,53,33,0.22)] dark:hover:border-yellow-400/60 dark:hover:shadow-[0_50px_100px_-30px_rgba(0,0,0,0.6)]'
         )}
       >
@@ -147,8 +151,13 @@ export function RatDashboard() {
           </div>
         ) : (
           <div className='grid grid-cols-1 gap-6 sm:gap-12 md:grid-cols-2'>
-            {/* 左侧指标面板:translateZ 让 Tilt 时产生悬浮分层 */}
-            <div className='rounded-2xl border border-white/60 bg-white/40 p-4 [transform:translateZ(30px)] sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-white/5'>
+            {/* 左侧指标面板: Edge 移除 translateZ，Chrome/Firefox 保持 3D 分层 */}
+            <div
+              className={cn(
+                'rounded-2xl border border-white/60 bg-white/40 p-4 sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-white/5',
+                !isEdge && '[transform:translateZ(30px)]'
+              )}
+            >
               <div className='mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-3'>
                 <MetricCell
                   icon={HeartPulse}
@@ -185,8 +194,13 @@ export function RatDashboard() {
               )}
             </div>
 
-            {/* 右侧奶酪统计:更高的 translateZ,Tilt 时浮得更靠前 */}
-            <div className='bg-rat-brown/5 flex flex-col items-center justify-center space-y-3 rounded-[32px] p-6 text-center [transform:translateZ(50px)] sm:space-y-4 sm:rounded-[40px] sm:p-8'>
+            {/* 右侧奶酪统计: Edge 移除 translateZ，Chrome/Firefox 更高的 translateZ */}
+            <div
+              className={cn(
+                'bg-rat-brown/5 flex flex-col items-center justify-center space-y-3 rounded-[32px] p-6 text-center sm:space-y-4 sm:rounded-[40px] sm:p-8',
+                !isEdge && '[transform:translateZ(50px)]'
+              )}
+            >
               {/* 奶酪图标用 emoji 替代外链 SVG(api.iconify.design 国内访问不稳定且增加请求) */}
               <div className='animate-float-rat flex size-24 items-center justify-center rounded-full bg-white shadow-xl sm:size-32 dark:bg-white/10'>
                 <span
