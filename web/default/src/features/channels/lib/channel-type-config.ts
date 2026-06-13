@@ -158,6 +158,30 @@ export const CHANNEL_TYPE_CONFIGS: Record<number, ChannelTypeConfig> = {
         'mimo-v2.5-pro,mimo-v2.5,mimo-v2.5-asr,mimo-v2.5-tts-voiceclone,mimo-v2.5-tts-voicedesign,mimo-v2.5-tts,mimo-v2-pro,mimo-v2-omni,mimo-v2-tts',
     },
   },
+  59: {
+    id: 59,
+    name: CHANNEL_TYPES[59],
+    icon: 'xiaomi-mimo',
+    defaultBaseUrl: 'https://token-plan-sgp.xiaomimimo.com',
+    supportedModels: [
+      'mimo-v2.5-pro',
+      'mimo-v2.5',
+      'mimo-v2.5-asr',
+      'mimo-v2.5-tts-voiceclone',
+      'mimo-v2.5-tts-voicedesign',
+      'mimo-v2.5-tts',
+      'mimo-v2-pro',
+      'mimo-v2-omni',
+      'mimo-v2-tts',
+    ],
+    hints: {
+      baseUrl:
+        'Default: https://token-plan-sgp.xiaomimimo.com (OpenAI: /v1, Anthropic: /anthropic)',
+      key: 'MiMO Token Plan API Key (International)',
+      models:
+        'mimo-v2.5-pro,mimo-v2.5,mimo-v2.5-asr,mimo-v2.5-tts-voiceclone,mimo-v2.5-tts-voicedesign,mimo-v2.5-tts,mimo-v2-pro,mimo-v2-omni,mimo-v2-tts',
+    },
+  },
 }
 
 /**

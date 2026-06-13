@@ -79,6 +79,7 @@ export function getChannelTypeIcon(type: number): string {
     35: 'Minimax', // MiniMax
     45: 'Volcengine', // VolcEngine
     58: 'XiaomiMiMo', // Xiaomi MiMO
+    59: 'XiaomiMiMo', // Xiaomi MiMO International
 
     // Other AI providers
     4: 'Ollama', // Ollama
