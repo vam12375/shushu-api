@@ -314,6 +314,8 @@ func fetchChannelUpstreamModelIDs(channel *model.Channel) ([]string, error) {
 		}
 	case constant.ChannelTypeMiMo:
 		url = fmt.Sprintf("%s/models", mimo.OpenAIBaseURL(baseURL))
+	case constant.ChannelTypeMiMoInternational:
+		url = fmt.Sprintf("%s/models", mimo.OpenAIBaseURL(baseURL))
 	default:
 		url = fmt.Sprintf("%s/v1/models", baseURL)
 	}

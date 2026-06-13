@@ -123,6 +123,8 @@ func GetAdaptor(apiType int) channel.Adaptor {
 		return &codex.Adaptor{}
 	case constant.APITypeMiMo:
 		return &mimo.Adaptor{}
+	case constant.APITypeMiMoInternational:
+		return &mimo.Adaptor{}
 	}
 	return nil
 }

@@ -54,9 +54,10 @@ const (
 	ChannelTypeDoubaoVideo    = 54
 	ChannelTypeSora           = 55
 	ChannelTypeReplicate      = 56
-	ChannelTypeCodex          = 57
-	ChannelTypeMiMo           = 58
-	ChannelTypeDummy          // this one is only for count, do not add any channel after this
+	ChannelTypeCodex               = 57
+	ChannelTypeMiMo                = 58
+	ChannelTypeMiMoInternational   = 59
+	ChannelTypeDummy               // this one is only for count, do not add any channel after this
 
 )
 
@@ -120,6 +121,7 @@ var ChannelBaseURLs = []string{
 	"https://api.replicate.com",                 //56
 	"https://chatgpt.com",                       //57
 	"https://token-plan-cn.xiaomimimo.com",      //58
+	"https://token-plan-sgp.xiaomimimo.com",     //59
 }
 
 var ChannelTypeNames = map[int]string{
@@ -178,6 +180,7 @@ var ChannelTypeNames = map[int]string{
 	ChannelTypeReplicate:      "Replicate",
 	ChannelTypeCodex:          "Codex",
 	ChannelTypeMiMo:           "Xiaomi MiMO",
+	ChannelTypeMiMoInternational: "Xiaomi MiMO International",
 }
 
 func GetChannelTypeName(channelType int) string {
